@@ -29,7 +29,13 @@ export async function sendDailyBriefing(date = todayISO()) {
 
 export function buildBriefingMessage(date, contents) {
   const body = contents.map((content, index) => {
-    return `#${index + 1} - ${content.funil.toUpperCase()} | ${pillarLabel(content.pillar)}\n_${content.gancho}_`;
+    return `#${index + 1} - ${content.funil.toUpperCase()} | ${content.objetivo_post || 'Conteudo'} | ${content.formato_recomendado || 'Formato livre'}
+*${content.titulo_reels || content.tema}*
+_${content.gancho}_
+
+Roteiro: ${content.roteiro_falado || (content.estrutura || []).join(' / ')}
+Tela: ${content.momento_mostrar_tela || 'sem tela'}
+CTA: ${content.cta_texto}`;
   }).join('\n\n----------------\n\n');
 
   return `*Briefing de Conteudo - ${date}*

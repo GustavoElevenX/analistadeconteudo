@@ -90,13 +90,39 @@ function contentCard(content) {
       <div class="meta">
         <span class="badge ${content.funil}">${content.funil}</span>
         <span class="badge pillar">${labelPillar(content.pillar)}</span>
+        <span class="badge pillar">${escapeHtml(content.objetivo_post || objectiveForFunil(content.funil))}</span>
       </div>
+      <div class="card-kicker">${escapeHtml(content.sequencia_nome || '')}${content.sequencia_parte ? ` | Parte ${content.sequencia_parte}` : ''}</div>
+      <h2 class="reels-title">${escapeHtml(content.titulo_reels || content.tema || '')}</h2>
+      <div class="format-line">${escapeHtml(content.formato_recomendado || 'Camera direta')}</div>
       <p class="hook">${escapeHtml(content.gancho)}</p>
+      <div class="script-block">
+        <strong>Roteiro falado</strong>
+        <p>${escapeHtml(content.roteiro_falado || '')}</p>
+      </div>
+      ${content.momento_mostrar_tela ? `
+        <div class="script-block">
+          <strong>Momento de tela</strong>
+          <p>${escapeHtml(content.momento_mostrar_tela)}</p>
+        </div>
+      ` : ''}
+      <div class="script-block">
+        <strong>Interpretacao</strong>
+        <p>${escapeHtml(content.interpretacao || '')}</p>
+      </div>
       <ol class="structure">${(content.estrutura || []).slice(0, 3).map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>
       <div class="cta">${escapeHtml(content.cta_texto || '')}</div>
+      <div class="caption">${escapeHtml(content.legenda || '')}</div>
       <div class="link-box">
         ${content.instagram_post_id
-          ? `<span class="linked">Post vinculado</span>`
+          ? `
+            <span class="linked">Post vinculado</span>
+            <div class="manual-metrics">
+              <input type="number" min="0" data-clicks-input="${content.instagram_post_id}" placeholder="Cliques no link" />
+              <input type="number" min="0" data-leads-input="${content.instagram_post_id}" placeholder="Leads" />
+              <button class="card-action" data-manual-metrics="${content.instagram_post_id}">Registrar performance</button>
+            </div>
+          `
           : `<input class="post-link-input" data-link-input="${content.id}" placeholder="Link do post publicado" />`}
       </div>
       <div class="card-actions">
@@ -134,6 +160,18 @@ function bindCardButtons(root) {
       toast(error.message);
     }
   }));
+  root.querySelectorAll('[data-manual-metrics]').forEach(button => button.addEventListener('click', async () => {
+    const postId = button.dataset.manualMetrics;
+    const linkClicks = Number(root.querySelector(`[data-clicks-input="${postId}"]`)?.value || 0);
+    const leadsGenerated = Number(root.querySelector(`[data-leads-input="${postId}"]`)?.value || 0);
+    try {
+      await putJson(`/api/metrics/${postId}/manual`, { link_clicks: linkClicks, leads_generated: leadsGenerated });
+      toast('Performance registrada.');
+      await loadAnalytics();
+    } catch (error) {
+      toast(error.message);
+    }
+  }));
   root.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', async () => {
     await navigator.clipboard.writeText(decodeURIComponent(button.dataset.copy));
     toast('Copiado.');
@@ -148,14 +186,22 @@ async function captureInsight() {
     id: `insight-${index}`,
     funil: item.funil,
     pillar: 'vendas',
+    objetivo_post: item.objetivo_post,
+    formato_recomendado: item.formato_recomendado,
     gancho: item.gancho,
+    roteiro_falado: item.roteiro_falado,
+    momento_mostrar_tela: item.momento_mostrar_tela,
+    interpretacao: item.interpretacao,
     estrutura: item.estrutura || [],
     cta_texto: item.cta_texto,
+    legenda: item.legenda,
+    titulo_reels: item.titulo_reels,
+    porque_gera_leads: item.porque_gera_leads,
     used: 0,
     favorited: 0
   }));
   $('#capture-result').innerHTML = cards.map(contentCard).join('');
-  $('#capture-result').querySelectorAll('[data-use],[data-favorite]').forEach(button => button.remove());
+  $('#capture-result').querySelectorAll('[data-use],[data-favorite],[data-link],.link-box').forEach(item => item.remove());
   bindCardButtons($('#capture-result'));
 }
 
@@ -189,10 +235,14 @@ async function loadAnalytics() {
   ]);
   const o = overview.overview || {};
   $('#analytics-grid').innerHTML = [
+    metric('Postagens', round(o.posts, 0)),
+    metric('Vinculadas', round(o.linked_posts, 0)),
     metric('Reach medio', round(o.avg_reach)),
     metric('Engajamento', `${round(o.avg_engagement_rate)}%`),
     metric('Retencao', `${round(o.avg_retention_score)}%`),
-    metric('Lead score', `${round(o.avg_lead_score)}%`)
+    metric('Lead score', `${round(o.avg_lead_score)}%`),
+    metric('Cliques', round(o.link_clicks, 0)),
+    metric('Leads', round(o.leads_generated, 0))
   ].join('');
   const p = intelligence.patterns || {};
   $('#patterns-panel').innerHTML = `
@@ -230,16 +280,54 @@ async function put(url) {
   return resp.json();
 }
 
+async function putJson(url, body) {
+  const resp = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!resp.ok) throw new Error((await resp.json()).error || 'Erro na API');
+  return resp.json();
+}
+
 function formatContent(content) {
-  return `GANCHO:\n${content.gancho}\n\nESTRUTURA:\n${(content.estrutura || []).join('\n')}\n\nCTA:\n${content.cta_texto}\n\nHASHTAGS:\n${(content.hashtags || []).join(' ')}`;
+  return `OBJETIVO:\n${content.objetivo_post || objectiveForFunil(content.funil)}
+
+FUNIL:\n${String(content.funil || '').toUpperCase()}
+
+FORMATO:\n${content.formato_recomendado || ''}
+
+TITULO DO REELS:\n${content.titulo_reels || ''}
+
+GANCHO:\n${content.gancho}
+
+ROTEIRO FALADO:\n${content.roteiro_falado || ''}
+
+MOMENTO DE MOSTRAR TELA:\n${content.momento_mostrar_tela || ''}
+
+INTERPRETACAO:\n${content.interpretacao || ''}
+
+ESTRUTURA:\n${(content.estrutura || []).join('\n')}
+
+CTA:\n${content.cta_texto}
+
+LEGENDA:\n${content.legenda || ''}
+
+POR QUE GERA LEADS:\n${content.porque_gera_leads || ''}
+
+HASHTAGS:\n${(content.hashtags || []).join(' ')}`;
 }
 
 function labelPillar(pillar) {
   return { vendas: 'Vendas', empreendedorismo: 'Negocios', fe: 'Fe', vida: 'Vida' }[pillar] || pillar;
 }
 
-function round(value) {
-  return Number(value || 0).toFixed(1);
+function round(value, digits = 1) {
+  return Number(value || 0).toFixed(digits);
+}
+
+function objectiveForFunil(funil) {
+  return { topo: 'Atrair seguidores', meio: 'Gerar autoridade', fundo: 'Gerar leads' }[funil] || 'Gerar leads';
 }
 
 function percent(value) {

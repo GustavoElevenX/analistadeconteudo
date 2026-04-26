@@ -48,20 +48,24 @@ async function fetchInsights(media) {
 }
 
 function upsertMetric(media, metrics) {
+  const existing = db.prepare('SELECT link_clicks, leads_generated FROM post_metrics WHERE instagram_post_id = ?').get(media.id) || {};
   const reach = Number(metrics.reach || 0);
   const engagement = Number(metrics.likes || 0) + Number(metrics.comments || 0) + Number(metrics.shares || 0) + Number(metrics.saves || 0);
   const engagementRate = reach ? (engagement / reach) * 100 : 0;
   const retentionScore = reach ? (Number(metrics.plays || 0) / reach) * 100 : 0;
-  const leadScore = reach ? (Number(metrics.profile_visits || 0) / reach) * 100 : 0;
+  const leadActions = Number(metrics.profile_visits || 0)
+    + (Number(existing.link_clicks || 0) * 2)
+    + (Number(existing.leads_generated || 0) * 8);
+  const leadScore = reach ? (leadActions / reach) * 100 : 0;
 
   db.prepare(`
     INSERT INTO post_metrics (
       instagram_post_id, permalink, posted_at, media_type, caption_snippet, reach, impressions, plays,
-      likes, comments, shares, saves, profile_visits, engagement_rate, retention_score,
+      likes, comments, shares, saves, link_clicks, leads_generated, profile_visits, engagement_rate, retention_score,
       lead_score, sync_count
     ) VALUES (
       @instagram_post_id, @permalink, @posted_at, @media_type, @caption_snippet, @reach, @impressions, @plays,
-      @likes, @comments, @shares, @saves, @profile_visits, @engagement_rate, @retention_score,
+      @likes, @comments, @shares, @saves, @link_clicks, @leads_generated, @profile_visits, @engagement_rate, @retention_score,
       @lead_score, 1
     )
     ON CONFLICT(instagram_post_id) DO UPDATE SET
@@ -73,6 +77,8 @@ function upsertMetric(media, metrics) {
       comments = excluded.comments,
       shares = excluded.shares,
       saves = excluded.saves,
+      link_clicks = post_metrics.link_clicks,
+      leads_generated = post_metrics.leads_generated,
       profile_visits = excluded.profile_visits,
       engagement_rate = excluded.engagement_rate,
       retention_score = excluded.retention_score,
@@ -92,6 +98,8 @@ function upsertMetric(media, metrics) {
     comments: Number(metrics.comments || 0),
     shares: Number(metrics.shares || 0),
     saves: Number(metrics.saves || metrics.saved || 0),
+    link_clicks: Number(existing.link_clicks || 0),
+    leads_generated: Number(existing.leads_generated || 0),
     profile_visits: Number(metrics.profile_visits || 0),
     engagement_rate: engagementRate,
     retention_score: retentionScore,

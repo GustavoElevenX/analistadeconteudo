@@ -16,13 +16,22 @@ export function initDb() {
     CREATE TABLE IF NOT EXISTS contents (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
+      objetivo_post TEXT,
       funil TEXT NOT NULL,
       pillar TEXT NOT NULL,
+      sequencia_nome TEXT,
+      sequencia_parte INTEGER DEFAULT 1,
       tema TEXT NOT NULL,
+      formato_recomendado TEXT,
       gancho TEXT NOT NULL,
+      roteiro_falado TEXT,
+      momento_mostrar_tela TEXT,
+      interpretacao TEXT,
       estrutura TEXT NOT NULL,
       cta_tipo TEXT NOT NULL,
       cta_texto TEXT NOT NULL,
+      legenda TEXT,
+      titulo_reels TEXT,
       hashtags TEXT NOT NULL,
       porque_gera_leads TEXT NOT NULL,
       source_headline TEXT,
@@ -71,6 +80,8 @@ export function initDb() {
       comments INTEGER DEFAULT 0,
       shares INTEGER DEFAULT 0,
       saves INTEGER DEFAULT 0,
+      link_clicks INTEGER DEFAULT 0,
+      leads_generated INTEGER DEFAULT 0,
       profile_visits INTEGER DEFAULT 0,
       engagement_rate REAL DEFAULT 0,
       retention_score REAL DEFAULT 0,
@@ -83,12 +94,12 @@ export function initDb() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       window_days INTEGER DEFAULT 30,
-      weight_topo REAL DEFAULT 0.35,
-      weight_meio REAL DEFAULT 0.40,
-      weight_fundo REAL DEFAULT 0.25,
-      weight_vendas REAL DEFAULT 0.55,
-      weight_empreendedorismo REAL DEFAULT 0.25,
-      weight_fe REAL DEFAULT 0.15,
+      weight_topo REAL DEFAULT 0.40,
+      weight_meio REAL DEFAULT 0.30,
+      weight_fundo REAL DEFAULT 0.30,
+      weight_vendas REAL DEFAULT 0.70,
+      weight_empreendedorismo REAL DEFAULT 0.20,
+      weight_fe REAL DEFAULT 0.05,
       weight_vida REAL DEFAULT 0.05,
       top_hook_formulas TEXT,
       best_posting_hours TEXT,
@@ -145,10 +156,14 @@ export function insertSources(date, sources) {
 export function insertContents(date, contents) {
   const stmt = db.prepare(`
     INSERT INTO contents (
-      date, funil, pillar, tema, gancho, estrutura, cta_tipo, cta_texto,
+      date, objetivo_post, funil, pillar, sequencia_nome, sequencia_parte, tema,
+      formato_recomendado, gancho, roteiro_falado, momento_mostrar_tela,
+      interpretacao, estrutura, cta_tipo, cta_texto, legenda, titulo_reels,
       hashtags, porque_gera_leads, source_headline, source_url
     ) VALUES (
-      @date, @funil, @pillar, @tema, @gancho, @estrutura, @cta_tipo, @cta_texto,
+      @date, @objetivo_post, @funil, @pillar, @sequencia_nome, @sequencia_parte, @tema,
+      @formato_recomendado, @gancho, @roteiro_falado, @momento_mostrar_tela,
+      @interpretacao, @estrutura, @cta_tipo, @cta_texto, @legenda, @titulo_reels,
       @hashtags, @porque_gera_leads, @source_headline, @source_url
     )
   `);
@@ -163,18 +178,35 @@ export function insertContents(date, contents) {
 function normalizeContent(date, item) {
   return {
     date,
+    objetivo_post: item.objetivo_post || objectiveForFunil(item.funil),
     funil: item.funil || 'topo',
     pillar: item.pillar || 'vendas',
+    sequencia_nome: item.sequencia_nome || '',
+    sequencia_parte: Number(item.sequencia_parte || 1),
     tema: item.tema || 'Tema comercial',
+    formato_recomendado: item.formato_recomendado || 'Camera direta',
     gancho: item.gancho || '',
+    roteiro_falado: item.roteiro_falado || '',
+    momento_mostrar_tela: item.momento_mostrar_tela || '',
+    interpretacao: item.interpretacao || '',
     estrutura: JSON.stringify(item.estrutura || []),
     cta_tipo: item.cta_tipo || item.ctaTipo || (item.funil === 'fundo' ? 'link' : 'comentario'),
     cta_texto: item.cta_texto || item.cta || '',
+    legenda: item.legenda || '',
+    titulo_reels: item.titulo_reels || '',
     hashtags: JSON.stringify(item.hashtags || []),
     porque_gera_leads: item.porque_gera_leads || item.porque || '',
     source_headline: item.source_headline || item.sourceHeadline || '',
     source_url: item.source_url || item.sourceUrl || ''
   };
+}
+
+function objectiveForFunil(funil) {
+  return {
+    topo: 'Atrair seguidores',
+    meio: 'Gerar autoridade',
+    fundo: 'Gerar leads'
+  }[funil] || 'Gerar leads';
 }
 
 async function openDatabase(filePath) {
@@ -236,9 +268,31 @@ function ensureMigrations() {
   if (!contentColumns.includes('instagram_permalink')) {
     db.exec('ALTER TABLE contents ADD COLUMN instagram_permalink TEXT');
   }
+  const contentMigrations = {
+    objetivo_post: 'TEXT',
+    sequencia_nome: 'TEXT',
+    sequencia_parte: 'INTEGER DEFAULT 1',
+    formato_recomendado: 'TEXT',
+    roteiro_falado: 'TEXT',
+    momento_mostrar_tela: 'TEXT',
+    interpretacao: 'TEXT',
+    legenda: 'TEXT',
+    titulo_reels: 'TEXT'
+  };
+  for (const [column, definition] of Object.entries(contentMigrations)) {
+    if (!contentColumns.includes(column)) {
+      db.exec(`ALTER TABLE contents ADD COLUMN ${column} ${definition}`);
+    }
+  }
   const metricColumns = db.prepare('PRAGMA table_info(post_metrics)').all().map(row => row.name);
   if (!metricColumns.includes('permalink')) {
     db.exec('ALTER TABLE post_metrics ADD COLUMN permalink TEXT');
+  }
+  if (!metricColumns.includes('link_clicks')) {
+    db.exec('ALTER TABLE post_metrics ADD COLUMN link_clicks INTEGER DEFAULT 0');
+  }
+  if (!metricColumns.includes('leads_generated')) {
+    db.exec('ALTER TABLE post_metrics ADD COLUMN leads_generated INTEGER DEFAULT 0');
   }
 }
 

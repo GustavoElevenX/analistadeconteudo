@@ -127,6 +127,25 @@ app.get('/api/metrics/:instagram_post_id', (req, res) => {
   res.json({ metric });
 });
 
+app.put('/api/metrics/:instagram_post_id/manual', (req, res) => {
+  const metric = db.prepare('SELECT * FROM post_metrics WHERE instagram_post_id = ?').get(req.params.instagram_post_id);
+  if (!metric) return res.status(404).json({ error: 'Metrica nao encontrada.' });
+
+  const linkClicks = Math.max(0, Number(req.body?.link_clicks || 0));
+  const leadsGenerated = Math.max(0, Number(req.body?.leads_generated || 0));
+  const reach = Number(metric.reach || 0);
+  const leadActions = Number(metric.profile_visits || 0) + (linkClicks * 2) + (leadsGenerated * 8);
+  const leadScore = reach ? (leadActions / reach) * 100 : 0;
+
+  db.prepare(`
+    UPDATE post_metrics
+    SET link_clicks = ?, leads_generated = ?, lead_score = ?, last_synced_at = CURRENT_TIMESTAMP
+    WHERE instagram_post_id = ?
+  `).run(linkClicks, leadsGenerated, leadScore, req.params.instagram_post_id);
+
+  res.json({ ok: true, link_clicks: linkClicks, leads_generated: leadsGenerated, lead_score: leadScore });
+});
+
 app.post('/api/sync-metrics-now', async (req, res, next) => {
   try {
     res.json(await runMetricsSync());
@@ -158,11 +177,12 @@ app.get('/api/analytics/overview', (req, res) => {
   const overview = db.prepare(`
     SELECT AVG(reach) avg_reach, AVG(engagement_rate) avg_engagement_rate,
       AVG(retention_score) avg_retention_score, AVG(lead_score) avg_lead_score,
+      SUM(link_clicks) link_clicks, SUM(leads_generated) leads_generated,
       COUNT(*) posts
     FROM post_metrics
-    WHERE content_id IS NOT NULL
   `).get();
-  res.json({ overview });
+  const linked = db.prepare('SELECT COUNT(*) posts FROM post_metrics WHERE content_id IS NOT NULL').get();
+  res.json({ overview: { ...overview, linked_posts: linked.posts } });
 });
 
 app.get('/api/analytics/by-funil', (req, res) => res.json({ rows: aggregateBy('funil') }));

@@ -71,11 +71,18 @@ h1 { font-family: "Sora", sans-serif; font-size: 28px; line-height: 1.15; margin
 .fundo { color: #e47c6a; background: #201310; }
 .pillar { color: var(--text2); background: var(--bg3); border: 1px solid var(--border); }
 .hook { font-size: 18px; line-height: 1.35; font-weight: 700; margin: 0 0 12px; }
+.card-kicker { color: var(--text2); font-size: 12px; margin: -4px 0 8px; }
+.reels-title { font-family: "Sora", sans-serif; font-size: 16px; line-height: 1.25; margin: 0 0 8px; }
+.format-line { color: var(--amber-light); font-size: 13px; margin-bottom: 10px; }
+.script-block { margin: 0 0 12px; }
+.script-block strong { display: block; color: var(--text); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+.script-block p { color: var(--text2); line-height: 1.5; margin: 0; }
 .structure { color: var(--text2); padding-left: 18px; margin: 0 0 12px; }
 .cta { color: var(--text); border-left: 2px solid var(--amber); padding-left: 10px; margin-bottom: 14px; }
+.caption { color: var(--text2); font-size: 13px; line-height: 1.45; margin-bottom: 14px; }
 .card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .link-box { margin: 0 0 12px; }
-.post-link-input {
+.post-link-input, .manual-metrics input {
   width: 100%;
   min-height: 36px;
   border-radius: 6px;
@@ -85,6 +92,8 @@ h1 { font-family: "Sora", sans-serif; font-size: 28px; line-height: 1.15; margin
   padding: 0 10px;
 }
 .linked { display: inline-block; color: #60d4b4; font-size: 13px; }
+.manual-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.manual-metrics button { grid-column: 1 / -1; }
 
 .panel { margin-bottom: 16px; }
 textarea {

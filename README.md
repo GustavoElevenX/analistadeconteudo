@@ -2,6 +2,8 @@
 
 Sistema local para gerar ideias de conteudo para Instagram, enviar briefing por WhatsApp, coletar metricas do Instagram Graph API e aprender com a performance real dos posts.
 
+Agora a geracao segue o contrato operacional da VAMO: a cada 10 conteudos, o sistema força 4 topo, 3 meio e 3 fundo; cada post sai com objetivo, funil, formato recomendado, gancho, roteiro falado, momento de tela, interpretacao, CTA, legenda e titulo de Reels. A inteligencia prioriza conteudos que aproximam o decisor do diagnostico e reduz sinais de vaidade.
+
 ## O que ja foi criado
 
 - Backend Node.js + Express em `backend/`
@@ -11,6 +13,7 @@ Sistema local para gerar ideias de conteudo para Instagram, enviar briefing por 
 - Geracao com OpenAI
 - WhatsApp via CallMeBot
 - Instagram Graph API para metricas
+- Registro manual de cliques no link e leads gerados, usado no lead score
 - Frontend responsivo em `frontend/`
 - `.env` e `.env.example` na raiz
 

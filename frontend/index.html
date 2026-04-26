@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analista de Conteudo</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <strong>Analista de Conteudo</strong>
+      <span>Sistema de leads</span>
+    </div>
+    <nav>
+      <button class="nav-item active" data-view="feed">Hoje</button>
+      <button class="nav-item" data-view="capture">Captura</button>
+      <button class="nav-item" data-view="analytics">Analytics</button>
+      <button class="nav-item" data-view="status">Status</button>
+      <button class="nav-item" data-view="favorites">Favoritos</button>
+      <button class="nav-item" data-view="settings">Config</button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <section id="feed" class="view active">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow" id="today-label">Hoje</p>
+          <h1>Feed do dia</h1>
+        </div>
+        <button class="primary" id="generate-now">Gerar agora</button>
+      </header>
+      <div class="filters">
+        <button class="chip active" data-filter="all">Todos</button>
+        <button class="chip" data-filter="topo">Topo</button>
+        <button class="chip" data-filter="meio">Meio</button>
+        <button class="chip" data-filter="fundo">Fundo</button>
+      </div>
+      <div id="contents-grid" class="content-grid"></div>
+    </section>
+
+    <section id="capture" class="view">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Insight rapido</p>
+          <h1>Transformar situacao em conteudo</h1>
+        </div>
+      </header>
+      <div class="panel">
+        <textarea id="insight-text" placeholder="Descreve o que aconteceu, uma frase de reuniao, uma duvida de cliente ou uma percepcao do dia..."></textarea>
+        <button class="primary" id="capture-btn">Transformar em conteudo</button>
+      </div>
+      <div id="capture-result" class="content-grid"></div>
+    </section>
+
+    <section id="analytics" class="view">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Performance</p>
+          <h1>Inteligencia de aprendizado</h1>
+        </div>
+        <button class="secondary" id="update-intelligence">Atualizar inteligencia</button>
+      </header>
+      <div id="analytics-grid" class="metric-grid"></div>
+      <div id="patterns-panel" class="panel"></div>
+    </section>
+
+    <section id="status" class="view">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Operacao</p>
+          <h1>Status do sistema</h1>
+        </div>
+        <button class="secondary" id="sync-metrics">Sincronizar metricas</button>
+      </header>
+      <div id="status-panel" class="panel"></div>
+    </section>
+
+    <section id="favorites" class="view">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Biblioteca</p>
+          <h1>Favoritos</h1>
+        </div>
+      </header>
+      <div id="favorites-grid" class="content-grid"></div>
+    </section>
+
+    <section id="settings" class="view">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Configuracao</p>
+          <h1>O que preencher no .env</h1>
+        </div>
+      </header>
+      <div class="panel prose">
+        <p>As chaves ficam no arquivo <code>.env</code> na raiz do projeto. Depois de alterar, reinicie o servidor.</p>
+        <ul>
+          <li><strong>Obrigatorio para gerar conteudo:</strong> <code>OPENAI_API_KEY</code>.</li>
+          <li><strong>Obrigatorio para briefing:</strong> <code>CALLMEBOT_PHONE</code> e <code>CALLMEBOT_APIKEY</code>.</li>
+          <li><strong>Obrigatorio para metricas:</strong> <code>IG_ACCESS_TOKEN</code> e <code>IG_USER_ID</code>.</li>
+          <li><strong>Recomendado para tendencias:</strong> <code>APIFY_API_TOKEN</code>. Sem ele, o sistema tenta RSS do Google News.</li>
+          <li><strong>Seguranca:</strong> troque <code>BASIC_AUTH_USER</code> e <code>BASIC_AUTH_PASS</code>.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <button class="floating" data-view-shortcut="capture">+</button>
+  <div id="toast" class="toast"></div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

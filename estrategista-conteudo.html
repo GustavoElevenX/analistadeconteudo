@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estrategista de Conteúdo — Sistema de Leads</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0e0d0c;
+  --bg2:#161514;
+  --bg3:#1d1c1a;
+  --bg4:#252320;
+  --border:#2e2c29;
+  --border2:#3a3835;
+  --text:#e8e3da;
+  --text2:#9b958a;
+  --text3:#5c5952;
+  --amber:#d4902a;
+  --amber-l:#e8a84a;
+  --amber-bg:#241d10;
+  --amber-border:#3d2f10;
+  --teal:#2a9d7c;
+  --teal-bg:#0f1e1a;
+  --teal-border:#1a3530;
+  --coral:#c9543a;
+  --coral-bg:#201310;
+  --coral-border:#3a1e15;
+  --success:#4a9e6a;
+  --success-bg:#0f1c14;
+  --r:10px;
+  --r2:6px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;font-size:15px;line-height:1.6}
+
+/* LAYOUT */
+.shell{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+
+/* SIDEBAR */
+.logo{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
+.logo-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--amber);letter-spacing:-0.02em}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em}
+
+.api-status{margin:10px 12px 0;padding:8px 12px;background:var(--bg3);border-radius:var(--r2);display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;border:1px solid var(--border);transition:border-color 0.15s}
+.api-status:hover{border-color:var(--border2)}
+.api-dot{width:7px;height:7px;border-radius:50%;background:#444;flex-shrink:0}
+.api-dot.on{background:var(--success)}
+.api-dot.off{background:var(--coral)}
+.api-label{color:var(--text2);flex:1}
+
+.nav{padding:10px 0;flex:1}
+.nav-section{padding:14px 14px 6px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:500}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;color:var(--text2);font-size:13.5px;transition:all 0.12s;border-left:2px solid transparent;margin:0 0 1px}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--amber-l);background:var(--amber-bg);border-left-color:var(--amber)}
+.nav-icon{width:16px;height:16px;opacity:0.7;flex-shrink:0}
+.nav-item.active .nav-icon{opacity:1}
+
+.funil-mini{margin:12px;background:var(--bg3);border-radius:var(--r);padding:12px;border:1px solid var(--border)}
+.funil-title{font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin-bottom:10px}
+.funil-stage{border-radius:5px;padding:6px 8px;margin-bottom:4px;font-size:11px;font-weight:500;cursor:default}
+.funil-topo{background:var(--teal-bg);border:1px solid var(--teal-border);color:#4fc1a0}
+.funil-meio{background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber-l)}
+.funil-fundo{background:var(--coral-bg);border:1px solid var(--coral-border);color:#e07060}
+.funil-stage span{font-size:10px;font-weight:400;opacity:0.7;display:block}
+
+.sidebar-footer{padding:12px;border-top:1px solid var(--border)}
+.sidebar-footer p{font-size:11px;color:var(--text3);line-height:1.5}
+
+/* TABS CONTENT */
+.tab-panel{display:none;flex:1;padding:28px 32px;max-width:860px;width:100%}
+.tab-panel.active{display:block}
+.tab-header{margin-bottom:24px}
+.tab-title{font-family:'Sora',sans-serif;font-size:20px;font-weight:600;color:var(--text);letter-spacing:-0.02em}
+.tab-desc{font-size:13.5px;color:var(--text2);margin-top:4px}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:16px}
+.card-title{font-size:12px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px}
+
+/* STAGE SELECTOR */
+.stage-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:0}
+.stage-btn{padding:14px 12px;border-radius:var(--r);border:1px solid var(--border);cursor:pointer;transition:all 0.15s;text-align:left;background:var(--bg3)}
+.stage-btn:hover{border-color:var(--border2)}
+.stage-btn.sel-topo{background:var(--teal-bg);border-color:var(--teal)}
+.stage-btn.sel-meio{background:var(--amber-bg);border-color:var(--amber)}
+.stage-btn.sel-fundo{background:var(--coral-bg);border-color:var(--coral)}
+.stage-btn .s-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.stage-btn .s-desc{font-size:11.5px;color:var(--text2);line-height:1.4}
+.stage-btn.sel-topo .s-name{color:#4fc1a0}
+.stage-btn.sel-meio .s-name{color:var(--amber-l)}
+.stage-btn.sel-fundo .s-name{color:#e07060}
+
+/* PILLAR SELECTOR */
+.pillar-grid{display:flex;gap:8px}
+.pillar-btn{flex:1;padding:10px;border-radius:var(--r2);border:1px solid var(--border);cursor:pointer;transition:all 0.12s;text-align:center;background:var(--bg3);font-size:13px;color:var(--text2)}
+.pillar-btn:hover{color:var(--text);border-color:var(--border2)}
+.pillar-btn.active{background:var(--amber-bg);border-color:var(--amber);color:var(--amber-l);font-weight:500}
+
+/* AUDIENCE */
+.audience-grid{display:flex;gap:8px;flex-wrap:wrap}
+.audience-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--border);cursor:pointer;font-size:12.5px;color:var(--text2);background:var(--bg3);transition:all 0.12s}
+.audience-btn:hover{color:var(--text)}
+.audience-btn.active{background:var(--bg4);border-color:var(--border2);color:var(--text);font-weight:500}
+
+/* INPUTS */
+.field-label{font-size:12px;color:var(--text2);margin-bottom:6px}
+textarea,input[type=text],input[type=password]{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;resize:vertical;transition:border-color 0.12s}
+textarea:focus,input[type=text]:focus,input[type=password]:focus{border-color:var(--border2)}
+textarea{min-height:70px;line-height:1.5}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--r2);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;transition:all 0.12s;border:none;outline:none}
+.btn-primary{background:var(--amber);color:#1a1200}
+.btn-primary:hover{background:var(--amber-l)}
+.btn-primary:disabled{opacity:0.45;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.btn-sm{padding:6px 14px;font-size:12.5px}
+.btn-full{width:100%}
+
+/* OUTPUT */
+.output-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+.output-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.output-tag{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:3px 9px;border-radius:4px}
+.tag-hook{background:var(--amber-bg);color:var(--amber-l);border:1px solid var(--amber-border)}
+.tag-estrutura{background:var(--teal-bg);color:#4fc1a0;border:1px solid var(--teal-border)}
+.tag-cta{background:var(--coral-bg);color:#e07060;border:1px solid var(--coral-border)}
+.tag-hashtags{background:var(--bg4);color:var(--text2);border:1px solid var(--border)}
+.tag-insight{background:var(--success-bg);color:#6cc98a;border:1px solid #1a3325}
+.output-body{padding:16px 18px;font-size:14.5px;line-height:1.65;color:var(--text)}
+.output-body ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.output-body ul li::before{content:"→ ";color:var(--text3);font-size:13px}
+.output-body ul li{padding-left:6px}
+.hashtag-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.hashtag{background:var(--bg4);border:1px solid var(--border);color:var(--text2);font-size:12px;padding:3px 9px;border-radius:20px}
+
+/* BATCH */
+.batch-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:10px;transition:border-color 0.12s}
+.batch-item:hover{border-color:var(--border2)}
+.batch-meta{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.batch-num{font-size:11px;color:var(--text3);font-weight:500}
+.badge-stage{font-size:10.5px;padding:2px 8px;border-radius:4px;font-weight:500}
+.badge-topo{background:var(--teal-bg);color:#4fc1a0}
+.badge-meio{background:var(--amber-bg);color:var(--amber-l)}
+.badge-fundo{background:var(--coral-bg);color:#e07060}
+.badge-pillar{background:var(--bg4);border:1px solid var(--border);color:var(--text2);font-size:10.5px;padding:2px 8px;border-radius:4px}
+.batch-hook{font-size:14.5px;font-weight:500;color:var(--text);margin-bottom:6px;line-height:1.45}
+.batch-tema{font-size:12.5px;color:var(--text2)}
+.batch-actions{display:flex;gap:6px;margin-top:10px}
+
+/* TRENDS */
+.trend-item{display:flex;align-items:flex-start;gap:14px;padding:14px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:all 0.12s}
+.trend-item:hover{border-color:var(--amber-border);background:var(--amber-bg)}
+.trend-num{font-size:18px;font-weight:700;color:var(--text3);font-family:'Sora',sans-serif;min-width:28px;padding-top:2px}
+.trend-item:hover .trend-num{color:var(--amber)}
+.trend-content{flex:1}
+.trend-headline{font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px;line-height:1.4}
+.trend-why{font-size:12.5px;color:var(--text2);line-height:1.4}
+.trend-stage{display:flex;gap:6px;margin-top:8px}
+
+/* HISTORY */
+.history-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:8px}
+.history-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:12px}
+.history-hook{font-size:14px;font-weight:500;color:var(--text);flex:1;line-height:1.4}
+.history-date{font-size:11px;color:var(--text3);white-space:nowrap;margin-top:3px}
+.history-tags{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.history-actions{display:flex;gap:6px}
+.empty-state{text-align:center;padding:48px 24px;color:var(--text3)}
+.empty-state p{font-size:14px;margin-top:8px}
+
+/* SETTINGS */
+.settings-group{margin-bottom:24px}
+.settings-group-title{font-family:'Sora',sans-serif;font-size:14px;font-weight:600;color:var(--text);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.field{margin-bottom:14px}
+
+/* LOADING */
+.loading-bar{display:none;gap:6px;padding:14px 0;align-items:center;color:var(--text2);font-size:13.5px}
+.loading-bar.active{display:flex}
+.ld{width:5px;height:5px;border-radius:50%;background:var(--amber);animation:ld 1.3s infinite;flex-shrink:0}
+.ld:nth-child(2){animation-delay:0.2s}
+.ld:nth-child(3){animation-delay:0.4s}
+@keyframes ld{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+
+/* ALERTS */
+.alert{padding:12px 16px;border-radius:var(--r2);font-size:13px;margin-bottom:16px}
+.alert-warn{background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber-l)}
+.alert-success{background:var(--success-bg);border:1px solid #1a3325;color:#6cc98a}
+
+/* BATCH CONTROLS */
+.batch-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.qty-grid{display:flex;gap:6px}
+.qty-btn{padding:8px 18px;border-radius:var(--r2);border:1px solid var(--border);cursor:pointer;font-size:14px;font-weight:600;color:var(--text2);background:var(--bg3);transition:all 0.12s;font-family:'DM Sans',sans-serif}
+.qty-btn.active{background:var(--amber-bg);border-color:var(--amber);color:var(--amber-l)}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg4);border:1px solid var(--border2);color:var(--text);padding:10px 18px;border-radius:var(--r2);font-size:13px;opacity:0;transition:opacity 0.2s;z-index:1000;pointer-events:none}
+.toast.show{opacity:1}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* COPY BTN */
+.copy-btn{background:transparent;border:1px solid var(--border);color:var(--text3);font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.12s}
+.copy-btn:hover{border-color:var(--border2);color:var(--text2)}
+
+.sep{height:1px;background:var(--border);margin:20px 0}
+.row{display:flex;gap:12px;align-items:flex-start}
+.row .field{flex:1}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-title">⚡ Estrategista</div>
+    <div class="logo-sub">Sistema de Leads</div>
+  </div>
+
+  <div class="api-status" onclick="goTab('config')" id="api-status-bar">
+    <div class="api-dot off" id="api-dot"></div>
+    <span class="api-label" id="api-label">Configurar API</span>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section">Criar</div>
+    <div class="nav-item active" onclick="goTab('gerador')" id="nav-gerador">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16"><path d="M8 1v14M1 8h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Gerador
+    </div>
+    <div class="nav-item" onclick="goTab('bateria')" id="nav-bateria">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="3" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="8" width="14" height="3" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="13" width="9" height="2" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
+      Bateria do Dia
+    </div>
+    <div class="nav-item" onclick="goTab('tendencias')" id="nav-tendencias">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16"><path d="M1 12l4-4 3 3 4-5 3 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Tendências
+    </div>
+    <div class="nav-section">Histórico</div>
+    <div class="nav-item" onclick="goTab('historico')" id="nav-historico">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Histórico
+    </div>
+    <div class="nav-section">Sistema</div>
+    <div class="nav-item" onclick="goTab('config')" id="nav-config">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M2.93 2.93l1.41 1.41M11.66 11.66l1.41 1.41M2.93 13.07l1.41-1.41M11.66 4.34l1.41-1.41" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Configurações
+    </div>
+  </nav>
+
+  <div class="funil-mini">
+    <div class="funil-title">Seu Funil</div>
+    <div class="funil-stage funil-topo">Topo <span>Atração — temas leves</span></div>
+    <div class="funil-stage funil-meio">Meio <span>Profundidade — como você pensa</span></div>
+    <div class="funil-stage funil-fundo">Fundo <span>Leads — diagnóstico</span></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+<!-- TAB: GERADOR -->
+<div class="tab-panel active" id="tab-gerador">
+  <div class="tab-header">
+    <div class="tab-title">Gerador de Conteúdo</div>
+    <div class="tab-desc">Configure e gere um conteúdo completo com gancho, estrutura e CTA.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">1. Onde está no funil?</div>
+    <div class="stage-grid" id="stage-sel">
+      <div class="stage-btn" onclick="selectStage('topo',this)">
+        <div class="s-name">Topo</div>
+        <div class="s-desc">Problemas comuns, temas leves. Atrair novos seguidores.</div>
+      </div>
+      <div class="stage-btn" onclick="selectStage('meio',this)">
+        <div class="s-name">Meio</div>
+        <div class="s-desc">Como você pensa e trabalha. Aprofundar confiança.</div>
+      </div>
+      <div class="stage-btn" onclick="selectStage('fundo',this)">
+        <div class="s-name">Fundo</div>
+        <div class="s-desc">Provas de metodologia. Convite para diagnóstico.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">2. Pilar do conteúdo</div>
+    <div class="pillar-grid">
+      <div class="pillar-btn active" onclick="selectPillar('vendas',this)">💼 Vendas e Negócios</div>
+      <div class="pillar-btn" onclick="selectPillar('fe',this)">✝️ Fé e Propósito</div>
+      <div class="pillar-btn" onclick="selectPillar('vida',this)">📱 Bastidores / Vida</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">3. Para qual persona?</div>
+    <div class="audience-grid">
+      <div class="audience-btn active" onclick="toggleAudience(this)">Diretor Comercial</div>
+      <div class="audience-btn active" onclick="toggleAudience(this)">Gestor de Vendas</div>
+      <div class="audience-btn active" onclick="toggleAudience(this)">Vendedor Sênior</div>
+      <div class="audience-btn active" onclick="toggleAudience(this)">Empresário</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">4. Tema ou ponto de vista (opcional)</div>
+    <textarea id="gen-topic" placeholder="Ex: Por que times de vendas perdem negócios no follow-up... Ou deixe em branco e a IA escolhe um tema relevante para o funil selecionado."></textarea>
+  </div>
+
+  <button class="btn btn-primary btn-full" id="btn-gerar" onclick="gerarConteudo()" style="font-size:15px;padding:13px">
+    ⚡ Gerar Conteúdo
+  </button>
+
+  <div class="loading-bar" id="gen-loading">
+    <div class="ld"></div><div class="ld"></div><div class="ld"></div>
+    <span>Gerando conteúdo estratégico...</span>
+  </div>
+
+  <div id="gen-output" style="margin-top:16px"></div>
+</div>
+
+<!-- TAB: BATERIA -->
+<div class="tab-panel" id="tab-bateria">
+  <div class="tab-header">
+    <div class="tab-title">Bateria do Dia</div>
+    <div class="tab-desc">Gere um lote completo de conteúdos para postar hoje com um clique.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Quantos conteúdos?</div>
+    <div class="qty-grid" id="qty-btns">
+      <div class="qty-btn" onclick="selectQty(5,this)">5</div>
+      <div class="qty-btn active" onclick="selectQty(7,this)">7</div>
+      <div class="qty-btn" onclick="selectQty(10,this)">10</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Foco desta bateria (opcional)</div>
+    <textarea id="batch-focus" placeholder="Ex: Esta semana quero falar sobre erros de gestão de vendas. Ou deixe em branco para distribuição automática pelo funil." style="min-height:60px"></textarea>
+  </div>
+
+  <button class="btn btn-primary btn-full" id="btn-bateria" onclick="gerarBateria()" style="font-size:15px;padding:13px">
+    ⚡ Gerar Bateria Completa
+  </button>
+
+  <div class="loading-bar" id="batch-loading">
+    <div class="ld"></div><div class="ld"></div><div class="ld"></div>
+    <span id="batch-loading-txt">Montando sua bateria de conteúdo...</span>
+  </div>
+
+  <div id="batch-output" style="margin-top:16px"></div>
+</div>
+
+<!-- TAB: TENDÊNCIAS -->
+<div class="tab-panel" id="tab-tendencias">
+  <div class="tab-header">
+    <div class="tab-title">Tendências e Pautas</div>
+    <div class="tab-desc">Temas e angulações relevantes para o seu público agora. Clique em um tema para gerar o conteúdo.</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">Filtrar por contexto</div>
+    <textarea id="trend-context" placeholder="Ex: estamos em período de planejamento Q3, mercado de vendas B2B tech..." style="min-height:52px"></textarea>
+  </div>
+
+  <button class="btn btn-primary btn-full" onclick="gerarTendencias()" style="font-size:15px;padding:13px">
+    🔍 Buscar Pautas Relevantes
+  </button>
+
+  <div class="loading-bar" id="trend-loading">
+    <div class="ld"></div><div class="ld"></div><div class="ld"></div>
+    <span>Analisando tendências do nicho...</span>
+  </div>
+
+  <div id="trend-output" style="margin-top:16px"></div>
+</div>
+
+<!-- TAB: HISTÓRICO -->
+<div class="tab-panel" id="tab-historico">
+  <div class="tab-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <div class="tab-title">Histórico</div>
+      <div class="tab-desc">Todos os conteúdos gerados. Salve os melhores para usar.</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="clearHistory()">Limpar tudo</button>
+  </div>
+  <div id="history-output"></div>
+</div>
+
+<!-- TAB: CONFIG -->
+<div class="tab-panel" id="tab-config">
+  <div class="tab-header">
+    <div class="tab-title">Configurações</div>
+    <div class="tab-desc">Configure sua chave de API e personalize o sistema.</div>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-group-title">API OpenAI</div>
+    <div class="field">
+      <div class="field-label">Chave da API (começa com sk-...)</div>
+      <input type="password" id="api-key-input" placeholder="sk-..." />
+    </div>
+    <button class="btn btn-primary" onclick="saveApiKey()">Salvar chave</button>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-group-title">Seu Perfil</div>
+    <div class="row">
+      <div class="field">
+        <div class="field-label">Seu nome</div>
+        <input type="text" id="cfg-nome" placeholder="Ex: Carlos Menezes" />
+      </div>
+      <div class="field">
+        <div class="field-label">CTA link (diagnóstico)</div>
+        <input type="text" id="cfg-cta" placeholder="Ex: linktr.ee/seunome" />
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Seu produto / serviço</div>
+      <input type="text" id="cfg-produto" placeholder="Ex: Consultoria de reestruturação comercial para PMEs" />
+    </div>
+    <div class="field">
+      <div class="field-label">Sobre você (diferencial, experiência, contexto)</div>
+      <textarea id="cfg-bio" placeholder="Ex: 12 anos em vendas B2B, formei mais de 200 gestores. Acabei de abrir minha consultoria com meu sócio Pedro. Sem cases ainda, mas com método sólido." style="min-height:90px"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="saveProfile()">Salvar perfil</button>
+  </div>
+
+  <div id="config-alert"></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// STATE
+let state = {
+  apiKey: localStorage.getItem('ec_apikey') || '',
+  profile: JSON.parse(localStorage.getItem('ec_profile') || '{"nome":"","cta":"","produto":"","bio":""}'),
+  stage: '',
+  pillar: 'vendas',
+  qty: 7,
+};
+
+// INIT
+document.addEventListener('DOMContentLoaded', () => {
+  if (state.apiKey) {
+    document.getElementById('api-key-input').value = state.apiKey;
+    setApiStatus(true);
+  }
+  loadProfileFields();
+  renderHistory();
+});
+
+function loadProfileFields() {
+  const p = state.profile;
+  document.getElementById('cfg-nome').value = p.nome || '';
+  document.getElementById('cfg-cta').value = p.cta || '';
+  document.getElementById('cfg-produto').value = p.produto || '';
+  document.getElementById('cfg-bio').value = p.bio || '';
+}
+
+function setApiStatus(on) {
+  document.getElementById('api-dot').className = 'api-dot ' + (on ? 'on' : 'off');
+  document.getElementById('api-label').textContent = on ? 'API conectada' : 'Configurar API';
+}
+
+// NAVIGATION
+function goTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+}
+
+// SELECTORS
+function selectStage(s, el) {
+  state.stage = s;
+  document.querySelectorAll('.stage-btn').forEach(b => b.className = 'stage-btn');
+  el.classList.add('sel-' + s);
+}
+function selectPillar(p, el) {
+  state.pillar = p;
+  document.querySelectorAll('.pillar-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+function toggleAudience(el) {
+  el.classList.toggle('active');
+}
+function selectQty(n, el) {
+  state.qty = n;
+  document.querySelectorAll('.qty-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function getSelectedAudiences() {
+  const active = document.querySelectorAll('.audience-btn.active');
+  return Array.from(active).map(b => b.textContent.trim());
+}
+
+// SYSTEM PROMPT
+function buildSystemPrompt() {
+  const p = state.profile;
+  const nome = p.nome || 'o criador';
+  const produto = p.produto || 'consultoria comercial';
+  const bio = p.bio || 'consultor de vendas B2B, começando agora com o sócio Pedro, sem cases ainda';
+  const cta = p.cta || 'link da bio — diagnóstico gratuito';
+
+  return `Você é o estrategista de conteúdo pessoal de ${nome}, especialista em criação de conteúdo para Instagram que gera leads B2B.
+
+PERFIL DO CRIADOR:
+- Nome: ${nome}
+- Produto/Serviço: ${produto}
+- Contexto: ${bio}
+- IMPORTANTE: Está começando agora. Não tem cases de clientes ainda. Não mencione cases. Foque em metodologia, provocações e conhecimento.
+
+PÚBLICO-ALVO:
+- Diretores Comerciais, Gestores de Vendas, Vendedores Sênior, Empresários
+- São ocupados, céticos com conteúdo genérico, valorizam quem entende a dor real deles
+- Tomam decisão de compra B2B. Precisam confiar antes de falar.
+
+OBJETIVO PRINCIPAL: Gerar leads qualificados para diagnóstico gratuito (${cta})
+Secundário: Autoridade e engajamento.
+
+FUNIL DE CONTEÚDO:
+- TOPO: Temas leves, erros comuns, provocações. Atrair quem não te conhece.
+- MEIO: Como você pensa, sua visão de mundo, metodologia. Construir confiança.
+- FUNDO: Resultados de metodologia (não cases), convites diretos para conversar.
+
+PILARES DE CONTEÚDO:
+1. Vendas e Negócios: gestão comercial, processo de vendas, liderança de times, erros comuns
+2. Fé e Propósito: Deus, princípios cristãos aplicados aos negócios, propósito
+3. Bastidores/Vida: construindo a consultoria, bastidores com Pedro, momentos reais
+
+FORMATO DOS VÍDEOS:
+- Diálogo direto, sem roteiro, falando do próprio conhecimento
+- Curtos (Reels Instagram, 30–90 segundos)
+- Tom: autoridade sem arrogância, provocativo, direto, humano
+
+REGRAS CRÍTICAS PARA O GANCHO:
+1. Os primeiros 5 segundos precisam gerar curiosidade IMEDIATA ou tocar uma dor específica
+2. Nunca comece com "Olá", "Hoje vou falar", "Salva esse vídeo"
+3. Use: afirmação polêmica, número específico, pergunta que dói, contra-senso, erro revelado
+4. O gancho deve ser falado naturalmente, como se estivesse numa conversa
+
+SEMPRE responda com JSON válido no seguinte formato, sem markdown, sem texto extra:
+{
+  "gancho": "Os primeiros 5-10 segundos exatos do que falar",
+  "estrutura": ["Ponto 1 a desenvolver", "Ponto 2", "Ponto 3", "Ponto 4 se necessário"],
+  "cta": "O que falar no final para gerar o lead",
+  "hashtags": ["#tag1","#tag2","#tag3","#tag4","#tag5"],
+  "porqueGeraLeads": "Uma frase explicando por que esse conteúdo específico traz o ICP a querer falar com você",
+  "tema": "Resumo em 6-8 palavras do tema"
+}`;
+}
+
+// API CALL
+async function callOpenAI(messages) {
+  if (!state.apiKey) {
+    toast('Configure sua chave de API primeiro!');
+    goTab('config');
+    return null;
+  }
+  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + state.apiKey
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      messages,
+      temperature: 0.82,
+      max_tokens: 1500
+    })
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || 'Erro na API');
+  }
+  const data = await resp.json();
+  return data.choices[0].message.content;
+}
+
+// SAVE TO HISTORY
+function saveToHistory(item) {
+  const hist = JSON.parse(localStorage.getItem('ec_history') || '[]');
+  hist.unshift({ ...item, ts: Date.now() });
+  if (hist.length > 50) hist.splice(50);
+  localStorage.setItem('ec_history', JSON.stringify(hist));
+}
+
+// RENDER OUTPUT CARD
+function renderOutputCard(res, ts) {
+  const stageLabels = { topo: 'Topo', meio: 'Meio', fundo: 'Fundo' };
+  const pillarLabels = { vendas: 'Vendas', fe: 'Fé', vida: 'Vida' };
+  const copyText = `GANCHO:\n${res.gancho}\n\nESTRUTURA:\n${(res.estrutura||[]).join('\n')}\n\nCTA:\n${res.cta}\n\nHASHTAGS:\n${(res.hashtags||[]).join(' ')}`;
+
+  return `
+  <div class="output-section">
+    <div class="output-header">
+      <div class="output-tag tag-hook">Gancho</div>
+      ${ts ? `<span style="font-size:11px;color:var(--text3)">${new Date(ts).toLocaleDateString('pt-BR')}</span>` : `<button class="copy-btn" onclick='copyText(${JSON.stringify(copyText)})'>Copiar tudo</button>`}
+    </div>
+    <div class="output-body" style="font-size:16px;font-weight:500;line-height:1.5">${res.gancho||''}</div>
+  </div>
+  <div class="output-section">
+    <div class="output-header"><div class="output-tag tag-estrutura">Estrutura do vídeo</div></div>
+    <div class="output-body"><ul>${(res.estrutura||[]).map(i=>`<li>${i}</li>`).join('')}</ul></div>
+  </div>
+  <div class="output-section">
+    <div class="output-header"><div class="output-tag tag-cta">CTA — geração de lead</div></div>
+    <div class="output-body">${res.cta||''}</div>
+  </div>
+  <div class="output-section">
+    <div class="output-header"><div class="output-tag tag-insight">Por que isso gera leads</div></div>
+    <div class="output-body">${res.porqueGeraLeads||''}</div>
+  </div>
+  <div class="output-section">
+    <div class="output-header"><div class="output-tag tag-hashtags">Hashtags</div></div>
+    <div class="output-body"><div class="hashtag-wrap">${(res.hashtags||[]).map(h=>`<span class="hashtag">${h}</span>`).join('')}</div></div>
+  </div>
+  <div style="margin-top:12px">
+    <button class="btn btn-ghost btn-sm" onclick='copyText(${JSON.stringify(copyText)})'>📋 Copiar conteúdo completo</button>
+  </div>`;
+}
+
+// GERADOR
+async function gerarConteudo() {
+  if (!state.stage) { toast('Selecione o nível do funil primeiro!'); return; }
+  const topic = document.getElementById('gen-topic').value.trim();
+  const audiences = getSelectedAudiences();
+  const pillarNames = { vendas: 'Vendas e Negócios', fe: 'Fé e Propósito', vida: 'Bastidores/Vida' };
+  const stageNames = { topo: 'Topo de Funil', meio: 'Meio de Funil', fundo: 'Fundo de Funil' };
+
+  const userMsg = `Gere um conteúdo para Instagram com as seguintes configurações:
+- Nível do funil: ${stageNames[state.stage]}
+- Pilar: ${pillarNames[state.pillar]}
+- Persona-alvo prioritária: ${audiences.join(', ')}
+${topic ? `- Tema/ponto de vista: ${topic}` : '- Escolha o tema mais relevante e provocativo para esse nível de funil e esse público'}
+
+IMPORTANTE: Se o nível for Fundo, o CTA deve ser direto para o diagnóstico gratuito. Se for Topo, o CTA deve ser mais leve (salvar, seguir). Meio deve criar desejo de saber mais.`;
+
+  document.getElementById('gen-loading').classList.add('active');
+  document.getElementById('btn-gerar').disabled = true;
+  document.getElementById('gen-output').innerHTML = '';
+
+  try {
+    const raw = await callOpenAI([
+      { role: 'system', content: buildSystemPrompt() },
+      { role: 'user', content: userMsg }
+    ]);
+    if (!raw) return;
+    const res = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    res.stage = state.stage;
+    res.pillar = state.pillar;
+    document.getElementById('gen-output').innerHTML = renderOutputCard(res);
+    saveToHistory(res);
+    toast('Conteúdo gerado!');
+  } catch(e) {
+    document.getElementById('gen-output').innerHTML = `<div class="alert alert-warn">Erro: ${e.message}</div>`;
+  }
+
+  document.getElementById('gen-loading').classList.remove('active');
+  document.getElementById('btn-gerar').disabled = false;
+}
+
+// BATERIA
+async function gerarBateria() {
+  const focus = document.getElementById('batch-focus').value.trim();
+  const qty = state.qty;
+
+  document.getElementById('batch-loading').classList.add('active');
+  document.getElementById('btn-bateria').disabled = true;
+  document.getElementById('batch-output').innerHTML = '';
+  document.getElementById('batch-loading-txt').textContent = `Montando ${qty} conteúdos para hoje...`;
+
+  const distrib = qty === 5
+    ? '2 Topo, 2 Meio, 1 Fundo'
+    : qty === 7
+    ? '3 Topo, 2 Meio, 2 Fundo'
+    : '4 Topo, 3 Meio, 3 Fundo';
+
+  const userMsg = `Gere uma bateria de ${qty} conteúdos para o Instagram de hoje.
+
+Distribuição no funil: ${distrib}
+Distribua os pilares de forma variada: Vendas e Negócios (maioria), Fé e Propósito (1-2), Bastidores/Vida (1).
+${focus ? `Foco temático desta bateria: ${focus}` : 'Varie os temas para cobrir diferentes dores do público (diretores, gestores, vendedores, empresários).'}
+
+IMPORTANTE: Cada gancho deve ser completamente diferente em formato e abordagem. Não repita fórmulas.
+
+Responda APENAS com JSON válido:
+{
+  "conteudos": [
+    {
+      "numero": 1,
+      "funil": "topo|meio|fundo",
+      "pillar": "vendas|fe|vida",
+      "tema": "Resumo em 6 palavras",
+      "gancho": "Os primeiros 5-10 segundos exatos",
+      "estrutura": ["ponto1","ponto2","ponto3"],
+      "cta": "O que falar no final"
+    }
+  ]
+}`;
+
+  try {
+    const raw = await callOpenAI([
+      { role: 'system', content: buildSystemPrompt() },
+      { role: 'user', content: userMsg }
+    ]);
+    if (!raw) return;
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const conteudos = parsed.conteudos || [];
+    let html = '';
+    conteudos.forEach((c, i) => {
+      const stageClass = { topo:'badge-topo', meio:'badge-meio', fundo:'badge-fundo' }[c.funil] || 'badge-topo';
+      const stageName = { topo:'Topo', meio:'Meio', fundo:'Fundo' }[c.funil] || c.funil;
+      const pillarName = { vendas:'💼 Vendas', fe:'✝️ Fé', vida:'📱 Vida' }[c.pillar] || c.pillar;
+      const copyText = `GANCHO:\n${c.gancho}\n\nESTRUTURA:\n${(c.estrutura||[]).join('\n')}\n\nCTA:\n${c.cta}`;
+      html += `
+      <div class="batch-item">
+        <div class="batch-meta">
+          <span class="batch-num">#${c.numero || (i+1)}</span>
+          <span class="badge-stage ${stageClass}">${stageName}</span>
+          <span class="badge-pillar">${pillarName}</span>
+        </div>
+        <div class="batch-hook">${c.gancho||''}</div>
+        <div class="batch-tema">${c.tema||''}</div>
+        ${c.estrutura && c.estrutura.length ? `<div style="margin-top:10px;font-size:12.5px;color:var(--text2)">${c.estrutura.map(p=>`→ ${p}`).join('<br>')}</div>` : ''}
+        ${c.cta ? `<div style="margin-top:8px;font-size:12.5px;color:var(--text3);padding:8px 10px;background:var(--bg4);border-radius:5px;border:1px solid var(--border)">CTA: ${c.cta}</div>` : ''}
+        <div class="batch-actions">
+          <button class="btn btn-ghost btn-sm" onclick='copyText(${JSON.stringify(copyText)})'>📋 Copiar</button>
+          <button class="btn btn-ghost btn-sm" onclick='usarNoBatchGerador(${JSON.stringify(c)})'>✏️ Expandir</button>
+        </div>
+      </div>`;
+      saveToHistory({ gancho: c.gancho, estrutura: c.estrutura, cta: c.cta, tema: c.tema, stage: c.funil, pillar: c.pillar, hashtags: [] });
+    });
+    document.getElementById('batch-output').innerHTML = html;
+    toast(`${conteudos.length} conteúdos gerados!`);
+  } catch(e) {
+    document.getElementById('batch-output').innerHTML = `<div class="alert alert-warn">Erro: ${e.message}</div>`;
+  }
+
+  document.getElementById('batch-loading').classList.remove('active');
+  document.getElementById('btn-bateria').disabled = false;
+}
+
+function usarNoBatchGerador(c) {
+  document.getElementById('gen-topic').value = c.gancho || c.tema || '';
+  if (c.funil) { state.stage = c.funil; document.querySelectorAll('.stage-btn').forEach(b => b.className = 'stage-btn'); document.querySelectorAll('.stage-btn')[{topo:0,meio:1,fundo:2}[c.funil]||0].classList.add('sel-'+c.funil); }
+  goTab('gerador');
+}
+
+// TENDÊNCIAS
+async function gerarTendencias() {
+  const context = document.getElementById('trend-context').value.trim();
+  document.getElementById('trend-loading').classList.add('active');
+  document.getElementById('trend-output').innerHTML = '';
+
+  const userMsg = `Gere 8 pautas altamente relevantes para o Instagram do criador agora.
+
+Cada pauta deve ser:
+- Específica e provocativa (não genérica)
+- Baseada em tensões reais do mercado de gestão comercial, vendas B2B, liderança
+- Distribuída pelo funil (3 topo, 3 meio, 2 fundo)
+- Incluir 1-2 pautas de fé/propósito quando relevante
+
+${context ? `Contexto adicional: ${context}` : 'Use tensões atemporais do mercado B2B brasileiro: pressão por resultado, turnover em times de vendas, dificuldade de mensurar ROI comercial, choque geracional nas equipes, falta de processo.'}
+
+Responda APENAS com JSON válido:
+{
+  "pautas": [
+    {
+      "titulo": "Título provocativo (como apareceria no gancho)",
+      "porque": "Por que esse tema ressoa agora com o público-alvo",
+      "funil": "topo|meio|fundo",
+      "pillar": "vendas|fe|vida",
+      "angulacao": "Ponto de vista específico para diferenciar do óbvio"
+    }
+  ]
+}`;
+
+  try {
+    const raw = await callOpenAI([
+      { role: 'system', content: buildSystemPrompt() },
+      { role: 'user', content: userMsg }
+    ]);
+    if (!raw) return;
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const pautas = parsed.pautas || [];
+    let html = '';
+    pautas.forEach((p, i) => {
+      const stageClass = { topo:'badge-topo', meio:'badge-meio', fundo:'badge-fundo' }[p.funil] || 'badge-topo';
+      const stageName = { topo:'Topo', meio:'Meio', fundo:'Fundo' }[p.funil] || p.funil;
+      const pillarName = { vendas:'💼 Vendas', fe:'✝️ Fé', vida:'📱 Vida' }[p.pillar] || p.pillar;
+      html += `
+      <div class="trend-item" onclick="usarTendencia(${JSON.stringify(p.titulo).replace(/'/g,"&#39;")},${JSON.stringify(p.funil)},${JSON.stringify(p.pillar)})">
+        <div class="trend-num">${i+1}</div>
+        <div class="trend-content">
+          <div class="trend-headline">${p.titulo||''}</div>
+          <div class="trend-why">${p.angulacao||p.porque||''}</div>
+          <div class="trend-stage">
+            <span class="badge-stage ${stageClass}">${stageName}</span>
+            <span class="badge-pillar">${pillarName}</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--text3);margin-top:6px">↗ Clique para gerar o conteúdo completo</div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('trend-output').innerHTML = html;
+    toast('Pautas carregadas!');
+  } catch(e) {
+    document.getElementById('trend-output').innerHTML = `<div class="alert alert-warn">Erro: ${e.message}</div>`;
+  }
+
+  document.getElementById('trend-loading').classList.remove('active');
+}
+
+function usarTendencia(titulo, funil, pillar) {
+  document.getElementById('gen-topic').value = titulo;
+  state.stage = funil;
+  state.pillar = pillar;
+  document.querySelectorAll('.stage-btn').forEach(b => b.className = 'stage-btn');
+  const idx = {topo:0,meio:1,fundo:2}[funil]||0;
+  document.querySelectorAll('.stage-btn')[idx].classList.add('sel-'+funil);
+  document.querySelectorAll('.pillar-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.pillar-btn')[{vendas:0,fe:1,vida:2}[pillar]||0].classList.add('active');
+  goTab('gerador');
+}
+
+// HISTORY
+function renderHistory() {
+  const hist = JSON.parse(localStorage.getItem('ec_history') || '[]');
+  const el = document.getElementById('history-output');
+  if (!hist.length) {
+    el.innerHTML = '<div class="empty-state">📭<p>Nenhum conteúdo gerado ainda.<br>Use o Gerador ou a Bateria do Dia.</p></div>';
+    return;
+  }
+  const stageClass = { topo:'badge-topo', meio:'badge-meio', fundo:'badge-fundo' };
+  const stageName = { topo:'Topo', meio:'Meio', fundo:'Fundo' };
+  const pillarName = { vendas:'💼 Vendas', fe:'✝️ Fé', vida:'📱 Vida' };
+  let html = '';
+  hist.forEach((item, i) => {
+    const copyText = `GANCHO:\n${item.gancho}\n\nESTRUTURA:\n${(item.estrutura||[]).join('\n')}\n\nCTA:\n${item.cta}\n\nHASHTAGS:\n${(item.hashtags||[]).join(' ')}`;
+    html += `
+    <div class="history-item">
+      <div class="history-header">
+        <div class="history-hook">${item.gancho||'—'}</div>
+        <div class="history-date">${item.ts ? new Date(item.ts).toLocaleDateString('pt-BR') : ''}</div>
+      </div>
+      <div class="history-tags">
+        ${item.stage ? `<span class="badge-stage ${stageClass[item.stage]||''}">${stageName[item.stage]||item.stage}</span>` : ''}
+        ${item.pillar ? `<span class="badge-pillar">${pillarName[item.pillar]||item.pillar}</span>` : ''}
+        ${item.tema ? `<span class="badge-pillar">${item.tema}</span>` : ''}
+      </div>
+      <div class="history-actions">
+        <button class="btn btn-ghost btn-sm" onclick='copyText(${JSON.stringify(copyText)})'>📋 Copiar</button>
+        <button class="btn btn-ghost btn-sm" onclick="removeHistory(${i})">Remover</button>
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function removeHistory(i) {
+  const hist = JSON.parse(localStorage.getItem('ec_history') || '[]');
+  hist.splice(i, 1);
+  localStorage.setItem('ec_history', JSON.stringify(hist));
+  renderHistory();
+}
+
+function clearHistory() {
+  if (!confirm('Apagar todo o histórico?')) return;
+  localStorage.removeItem('ec_history');
+  renderHistory();
+}
+
+// CONFIG
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key.startsWith('sk-')) { toast('Chave inválida — deve começar com sk-'); return; }
+  state.apiKey = key;
+  localStorage.setItem('ec_apikey', key);
+  setApiStatus(true);
+  document.getElementById('config-alert').innerHTML = '<div class="alert alert-success">✓ Chave salva com sucesso!</div>';
+  setTimeout(() => document.getElementById('config-alert').innerHTML = '', 3000);
+}
+
+function saveProfile() {
+  state.profile = {
+    nome: document.getElementById('cfg-nome').value.trim(),
+    cta: document.getElementById('cfg-cta').value.trim(),
+    produto: document.getElementById('cfg-produto').value.trim(),
+    bio: document.getElementById('cfg-bio').value.trim(),
+  };
+  localStorage.setItem('ec_profile', JSON.stringify(state.profile));
+  document.getElementById('config-alert').innerHTML = '<div class="alert alert-success">✓ Perfil salvo!</div>';
+  setTimeout(() => document.getElementById('config-alert').innerHTML = '', 3000);
+}
+
+// UTILS
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => toast('Copiado!')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('Copiado!');
+  });
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>

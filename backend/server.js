@@ -7,6 +7,7 @@ import { config, todayISO } from './config.js';
 import { db, parseContent } from './database.js';
 import { captureInsight } from './openai.js';
 import { getLatestPatterns } from './intelligence.js';
+import { generatePostingSchedule } from './posting-time-engine.js';
 import { runBriefing, runDailyGeneration, runIntelligenceUpdate, runMetricsSync, startScheduler, getStatus } from './scheduler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -90,6 +91,24 @@ app.get('/api/sources', (req, res) => {
 });
 
 app.get('/api/status', (req, res) => res.json(getStatus()));
+
+app.get('/api/posting-schedule', (req, res) => {
+  res.json(generatePostingSchedule({
+    icpType: req.query.icpType || req.query.icp,
+    postsPerDay: req.query.postsPerDay || req.query.posts_per_day,
+    date: req.query.date,
+    patterns: getLatestPatterns()
+  }));
+});
+
+app.post('/api/posting-schedule', (req, res) => {
+  res.json(generatePostingSchedule({
+    icpType: req.body?.icpType || req.body?.icp,
+    postsPerDay: req.body?.postsPerDay || req.body?.posts_per_day,
+    date: req.body?.date,
+    patterns: getLatestPatterns()
+  }));
+});
 
 app.post('/api/generate-now', async (req, res, next) => {
   try {
@@ -249,5 +268,5 @@ function normalizeInstagramUrl(value) {
 
 startScheduler();
 app.listen(config.port, () => {
-  console.log(`Analista de Conteudo rodando em http://localhost:${config.port}`);
+  console.log(`Central de Autoridade rodando em http://localhost:${config.port}`);
 });

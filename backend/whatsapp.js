@@ -29,16 +29,18 @@ export async function sendDailyBriefing(date = todayISO()) {
 
 export function buildBriefingMessage(date, contents) {
   const body = contents.map((content, index) => {
-    return `#${index + 1} - ${content.funil.toUpperCase()} | ${content.objetivo_post || 'Conteudo'} | ${content.formato_recomendado || 'Formato livre'}
+    return `#${index + 1} - ${content.funil.toUpperCase()} | ${pillarLabel(content.pillar)} | ${content.content_intent || content.objetivo_post || 'Conteudo'} | ${content.formato_recomendado || 'Formato livre'}
 *${content.titulo_reels || content.tema}*
 _${content.gancho}_
 
+Tese: ${content.tese || content.tema || ''}
 Roteiro: ${content.roteiro_falado || (content.estrutura || []).join(' / ')}
+Vamo: ${content.conexao_com_vamo || 'sem conexao explicita'}
 Tela: ${content.momento_mostrar_tela || 'sem tela'}
 CTA: ${content.cta_texto}`;
   }).join('\n\n----------------\n\n');
 
-  return `*Briefing de Conteudo - ${date}*
+  return `*Briefing da Central de Autoridade - ${date}*
 
 Bom dia! Aqui estao seus ${contents.length} melhores conteudos de hoje:
 
@@ -51,9 +53,12 @@ Bora gravar.`;
 
 function pillarLabel(pillar) {
   return {
-    vendas: 'Vendas',
+    vendas: 'Vamo',
+    vamo: 'Vamo',
     empreendedorismo: 'Empreendedorismo',
     fe: 'Fe',
-    vida: 'Vida'
+    familia: 'Familia',
+    vida: 'Familia',
+    oferta: 'Oferta'
   }[pillar] || pillar;
 }

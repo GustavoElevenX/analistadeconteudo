@@ -1,5 +1,33 @@
-# CONTEXT.md — Analista de Conteúdo Virtual
+# CONTEXT.md — Central de Autoridade e Demanda
 ## Especificação Completa do Sistema
+
+---
+
+## Atualizacao estrategica — Gustavo Garcia / Vamo
+
+O sistema deixa de ser apenas um gerador de ideias de gestao comercial e passa a operar como editor-chefe da marca pessoal de Gustavo Garcia, cofundador da Vamo.
+
+A Vamo deve ser posicionada como solucao de performance operacional comercial que une diagnostico, processos, sistemas e implementacao. Ela diagnostica gargalos em vendas, atendimento e pos-venda, redesenha processos, cria ou adapta sistemas de execucao, implementa na rotina do cliente, treina a equipe e otimiza continuamente.
+
+A Vamo nunca deve parecer software isolado, CRM tradicional, agencia de marketing, software house generica ou consultoria que so entrega diagnostico.
+
+Tese central: empresas nao perdem resultado apenas por falta de demanda. Muitas perdem vendas, atendimento e retencao por falhas invisiveis no processo comercial: lead sem retorno, follow-up fraco, ausencia de rotina, atendimento sem padrao, pos-venda inexistente e gestor sem visibilidade.
+
+Pilares editoriais novos:
+
+| Pilar | Peso inicial | Funcao |
+|---|---:|---|
+| Vamo / Performance Comercial | 45% | Atrair empresarios com dores reais de vendas, atendimento, pos-venda, processo, CRM, follow-up e previsibilidade. |
+| Empreendedorismo Real | 20% | Mostrar construcao do zero, decisoes, bastidores, dificuldade, visao de negocio e aprendizado pratico. |
+| Fe, Valores e Decisao | 15% | Conectar fe com responsabilidade, carater, tomada de decisao, disciplina e proposito. |
+| Familia e Responsabilidade | 10% | Mostrar o peso real de construir uma empresa tendo familia, futuro e obrigacoes. |
+| Oferta / Diagnostico | 10% | Convidar para diagnostico, conversa, analise ou entrada no funil da Vamo. |
+
+Todo conteudo gerado deve incluir `content_intent`, `content_type`, `tese`, `conexao_com_vamo`, `risco_generico`, `score_autoridade`, `score_demanda`, `score_conexao`, `score_autenticidade` e `score_vamo_alignment`.
+
+O recurso "Ideia da cabeca" transforma pensamento bruto em conteudo publicavel, com versoes para camera direta, story, carrossel, post mais agressivo, versao pessoal e sugestao de CTA.
+
+Conteudos de fe, familia e bastidor sao permitidos quando tratados com maturidade. Eles nao devem ser avaliados apenas por lead, mas tambem por comentarios, salvamentos, compartilhamentos, respostas, crescimento de seguidores e fortalecimento de autoridade.
 
 ---
 

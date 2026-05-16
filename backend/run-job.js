@@ -8,7 +8,7 @@ try {
   if (job === 'generate') console.log(await runDailyGeneration());
   else if (job === 'metrics') console.log(await runMetricsSync());
   else if (job === 'intelligence') console.log(await runIntelligenceUpdate());
-  else if (job === 'whatsapp-test') console.log(await sendWhatsAppMessage('Teste do Analista de Conteudo: WhatsApp conectado.'));
+  else if (job === 'whatsapp-test') console.log(await sendWhatsAppMessage('Teste da Central de Autoridade: WhatsApp conectado.'));
   else if (job === 'instagram-test') console.log(await testInstagramConnection());
   else {
     console.log('Use: generate | metrics | intelligence | whatsapp-test | instagram-test');

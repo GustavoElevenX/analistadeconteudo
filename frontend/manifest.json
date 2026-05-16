@@ -1,6 +1,6 @@
 {
-  "name": "Analista de Conteudo",
-  "short_name": "Conteudo",
+  "name": "Central de Autoridade",
+  "short_name": "Autoridade",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0e0d0c",

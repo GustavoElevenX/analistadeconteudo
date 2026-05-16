@@ -12,7 +12,7 @@ async function init() {
   bindNavigation();
   bindActions();
   $('#today-label').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
-  await Promise.all([loadContents(), loadStatus(), loadAnalytics(), loadFavorites()]);
+  await Promise.all([loadContents(), loadStatus(), loadAnalytics(), loadFavorites(), loadPostingSchedule()]);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
@@ -47,6 +47,7 @@ function bindActions() {
     }
   });
   $('#capture-btn').addEventListener('click', captureInsight);
+  $('#posts-per-day').addEventListener('change', loadPostingSchedule);
   $('#sync-metrics').addEventListener('click', async () => {
     await post('/api/sync-metrics-now', {});
     toast('Metricas sincronizadas.');
@@ -63,6 +64,47 @@ function bindActions() {
 function showView(view) {
   $$('.view').forEach(item => item.classList.toggle('active', item.id === view));
   $$('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.view === view));
+}
+
+async function loadPostingSchedule() {
+  const postsPerDay = $('#posts-per-day')?.value || 5;
+  const data = await get(`/api/posting-schedule?postsPerDay=${postsPerDay}`);
+  renderPostingSchedule(data);
+}
+
+function renderPostingSchedule(data) {
+  const windows = Object.fromEntries((data.attention_windows || []).map(item => [item.id, item]));
+  $('#posting-schedule-panel').innerHTML = `
+    <div class="panel posting-summary">
+      <div>
+        <span>ICP</span>
+        <strong>${escapeHtml(data.icp_label || data.icp)}</strong>
+      </div>
+      <div>
+        <span>Data</span>
+        <strong>${formatDate(data.date)}</strong>
+      </div>
+      <div>
+        <span>Modelo adaptativo</span>
+        <strong>${data.adaptive?.enabled ? 'Ativo' : 'Base'}</strong>
+      </div>
+    </div>
+    <div class="schedule-grid">
+      ${(data.schedule || []).map(slot => {
+        const window = windows[slot.window] || {};
+        return `
+          <article class="schedule-card">
+            <div class="schedule-time">${escapeHtml(slot.time)}</div>
+            <div>
+              <strong>${labelSlotType(slot.type)}</strong>
+              <span>${escapeHtml(window.label || '')}</span>
+              <small>${labelIntent(window.intent)}</small>
+            </div>
+          </article>
+        `;
+      }).join('')}
+    </div>
+  `;
 }
 
 async function loadContents() {
@@ -90,16 +132,30 @@ function contentCard(content) {
       <div class="meta">
         <span class="badge ${content.funil}">${content.funil}</span>
         <span class="badge pillar">${labelPillar(content.pillar)}</span>
+        <span class="badge pillar">${labelIntentType(content.content_intent)}</span>
+        <span class="badge pillar">${labelContentType(content.content_type)}</span>
         <span class="badge pillar">${escapeHtml(content.objetivo_post || objectiveForFunil(content.funil))}</span>
       </div>
       <div class="card-kicker">${escapeHtml(content.sequencia_nome || '')}${content.sequencia_parte ? ` | Parte ${content.sequencia_parte}` : ''}</div>
       <h2 class="reels-title">${escapeHtml(content.titulo_reels || content.tema || '')}</h2>
       <div class="format-line">${escapeHtml(content.formato_recomendado || 'Camera direta')}</div>
+      ${content.tese ? `
+        <div class="script-block highlight">
+          <strong>Tese</strong>
+          <p>${escapeHtml(content.tese)}</p>
+        </div>
+      ` : ''}
       <p class="hook">${escapeHtml(content.gancho)}</p>
       <div class="script-block">
         <strong>Roteiro falado</strong>
         <p>${escapeHtml(content.roteiro_falado || '')}</p>
       </div>
+      ${content.pausas_entonacao ? `
+        <div class="script-block">
+          <strong>Pausas / Entonacao</strong>
+          <p>${escapeHtml(content.pausas_entonacao)}</p>
+        </div>
+      ` : ''}
       ${content.momento_mostrar_tela ? `
         <div class="script-block">
           <strong>Momento de tela</strong>
@@ -110,7 +166,20 @@ function contentCard(content) {
         <strong>Interpretacao</strong>
         <p>${escapeHtml(content.interpretacao || '')}</p>
       </div>
+      ${content.conexao_com_vamo ? `
+        <div class="script-block highlight">
+          <strong>Conexao com Vamo</strong>
+          <p>${escapeHtml(content.conexao_com_vamo)}</p>
+        </div>
+      ` : ''}
       <ol class="structure">${(content.estrutura || []).slice(0, 3).map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>
+      <div class="score-row">
+        ${scorePill('Autoridade', content.score_autoridade)}
+        ${scorePill('Demanda', content.score_demanda)}
+        ${scorePill('Conexao', content.score_conexao)}
+        ${scorePill('Autenticidade', content.score_autenticidade)}
+        ${scorePill('Vamo', content.score_vamo_alignment)}
+      </div>
       <div class="cta">${escapeHtml(content.cta_texto || '')}</div>
       <div class="caption">${escapeHtml(content.legenda || '')}</div>
       <div class="link-box">
@@ -129,7 +198,7 @@ function contentCard(content) {
         <button class="card-action" data-use="${content.id}">${content.used ? 'Desmarcar' : 'Usado'}</button>
         ${content.instagram_post_id ? '' : `<button class="card-action" data-link="${content.id}">Vincular post</button>`}
         <button class="card-action" data-favorite="${content.id}">${content.favorited ? 'Favorito' : 'Favoritar'}</button>
-        <button class="card-action" data-copy="${encodeURIComponent(copy)}">Copiar</button>
+        <button class="card-action" data-copy="${encodeURIComponent(copy)}">Copiar para gravar</button>
       </div>
     </article>
   `;
@@ -182,21 +251,32 @@ async function captureInsight() {
   const text = $('#insight-text').value.trim();
   if (!text) return toast('Escreva o insight primeiro.');
   const data = await post('/api/capture-insight', { text });
-  const cards = (data.insights || []).map((item, index) => ({
+  const cards = (data.conteudos || data.insights || []).map((item, index) => ({
     id: `insight-${index}`,
     funil: item.funil,
-    pillar: 'vendas',
+    pillar: item.pillar || item.pilar || 'vamo',
+    content_intent: item.content_intent || item.intent || '',
+    content_type: item.content_type || item.formato || '',
     objetivo_post: item.objetivo_post,
+    tese: item.tese,
     formato_recomendado: item.formato_recomendado,
     gancho: item.gancho,
     roteiro_falado: item.roteiro_falado,
+    pausas_entonacao: item.pausas_entonacao,
     momento_mostrar_tela: item.momento_mostrar_tela,
     interpretacao: item.interpretacao,
     estrutura: item.estrutura || [],
     cta_texto: item.cta_texto,
     legenda: item.legenda,
     titulo_reels: item.titulo_reels,
+    conexao_com_vamo: item.conexao_com_vamo,
+    risco_generico: item.risco_generico,
     porque_gera_leads: item.porque_gera_leads,
+    score_autoridade: item.score_autoridade,
+    score_demanda: item.score_demanda,
+    score_conexao: item.score_conexao,
+    score_autenticidade: item.score_autenticidade,
+    score_vamo_alignment: item.score_vamo_alignment,
     used: 0,
     favorited: 0
   }));
@@ -216,6 +296,8 @@ async function loadStatus() {
     <p><code>Geracao:</code> ${data.cron.generate}</p>
     <p><code>Briefing:</code> ${data.cron.briefing}</p>
     <p><code>Metricas:</code> ${data.cron.metrics}</p>
+    <h3>Proxima agenda de posts</h3>
+    <p>${(data.postingSchedule?.schedule || []).map(slot => `${slot.time} ${labelSlotType(slot.type)}`).join(' | ')}</p>
     <h3>Ultimos logs</h3>
     ${(data.lastRuns || []).map(log => `
       <div class="log-row">
@@ -248,7 +330,7 @@ async function loadAnalytics() {
   $('#patterns-panel').innerHTML = `
     <h3>Pesos atuais</h3>
     <p>Funil: topo ${percent(p.weight_topo)}, meio ${percent(p.weight_meio)}, fundo ${percent(p.weight_fundo)}</p>
-    <p>Pilares: vendas ${percent(p.weight_vendas)}, empreendedorismo ${percent(p.weight_empreendedorismo)}, fe ${percent(p.weight_fe)}, vida ${percent(p.weight_vida)}</p>
+    <p>Pilares: Vamo ${percent(p.weight_vamo || p.weight_vendas)}, empreendedorismo ${percent(p.weight_empreendedorismo)}, fe ${percent(p.weight_fe)}, familia ${percent(p.weight_familia || p.weight_vida)}, oferta ${percent(p.weight_oferta)}</p>
     <h3>O sistema aprendeu</h3>
     <p>${escapeHtml(p.gpt_analysis || 'Ainda sem dados suficientes.')}</p>
   `;
@@ -291,35 +373,79 @@ async function putJson(url, body) {
 }
 
 function formatContent(content) {
-  return `OBJETIVO:\n${content.objetivo_post || objectiveForFunil(content.funil)}
+  return `TITULO:
+${content.titulo_reels || content.tema || ''}
 
-FUNIL:\n${String(content.funil || '').toUpperCase()}
+GANCHO:
+${content.gancho || ''}
 
-FORMATO:\n${content.formato_recomendado || ''}
+ROTEIRO:
+${content.roteiro_falado || ''}
 
-TITULO DO REELS:\n${content.titulo_reels || ''}
+PAUSAS / ENTONACAO:
+${content.pausas_entonacao || content.momento_mostrar_tela || ''}
 
-GANCHO:\n${content.gancho}
+CTA:
+${content.cta_texto || ''}
 
-ROTEIRO FALADO:\n${content.roteiro_falado || ''}
+LEGENDA:
+${content.legenda || ''}
 
-MOMENTO DE MOSTRAR TELA:\n${content.momento_mostrar_tela || ''}
+TESE:
+${content.tese || ''}
 
-INTERPRETACAO:\n${content.interpretacao || ''}
+CONEXAO COM VAMO:
+${content.conexao_com_vamo || ''}
 
-ESTRUTURA:\n${(content.estrutura || []).join('\n')}
-
-CTA:\n${content.cta_texto}
-
-LEGENDA:\n${content.legenda || ''}
-
-POR QUE GERA LEADS:\n${content.porque_gera_leads || ''}
-
-HASHTAGS:\n${(content.hashtags || []).join(' ')}`;
+HASHTAGS:
+${(content.hashtags || []).join(' ')}`;
 }
 
 function labelPillar(pillar) {
-  return { vendas: 'Vendas', empreendedorismo: 'Negocios', fe: 'Fe', vida: 'Vida' }[pillar] || pillar;
+  return {
+    vendas: 'Vamo',
+    vamo: 'Vamo',
+    empreendedorismo: 'Negocios',
+    fe: 'Fe',
+    familia: 'Familia',
+    vida: 'Familia',
+    oferta: 'Oferta'
+  }[pillar] || pillar;
+}
+
+function labelIntentType(intent) {
+  return {
+    atrair: 'Atrair',
+    autoridade: 'Autoridade',
+    conexao: 'Conexao',
+    educar: 'Educar',
+    quebrar_crenca: 'Quebrar crenca',
+    provar_metodo: 'Provar metodo',
+    vender: 'Vender',
+    reativar: 'Reativar',
+    bastidor: 'Bastidor'
+  }[intent] || 'Intencao';
+}
+
+function labelContentType(type) {
+  return {
+    camera_direta: 'Camera',
+    bastidor: 'Bastidor',
+    opiniao_forte: 'Opiniao',
+    historia_pessoal: 'Historia',
+    analise_de_operacao: 'Analise',
+    framework: 'Framework',
+    meme_com_contexto: 'Meme',
+    carrossel: 'Carrossel',
+    story: 'Story',
+    prova_de_construcao: 'Prova',
+    convite_diagnostico: 'Diagnostico'
+  }[type] || 'Tipo';
+}
+
+function scorePill(label, value) {
+  const score = Number(value || 0).toFixed(1);
+  return `<span><small>${label}</small><strong>${score}</strong></span>`;
 }
 
 function round(value, digits = 1) {
@@ -332,6 +458,31 @@ function objectiveForFunil(funil) {
 
 function percent(value) {
   return `${Math.round(Number(value || 0) * 100)}%`;
+}
+
+function labelSlotType(type) {
+  return {
+    insight: 'Insight',
+    diagnostic: 'Diagnostico',
+    light: 'Leve',
+    quick_value: 'Valor rapido',
+    authority: 'Autoridade'
+  }[type] || type;
+}
+
+function labelIntent(intent) {
+  return {
+    awareness_mindset: 'Awareness / mindset',
+    practical_problem_solving: 'Pratico / solucao',
+    light_consumption: 'Consumo leve',
+    quick_insights: 'Insights rapidos',
+    deep_authority_conversion: 'Autoridade / conversao'
+  }[intent] || '';
+}
+
+function formatDate(value) {
+  if (!value) return '';
+  return new Date(`${value}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
 }
 
 function escapeHtml(value) {

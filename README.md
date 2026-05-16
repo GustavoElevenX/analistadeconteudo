@@ -1,8 +1,18 @@
-# Analista de Conteudo Virtual
+# Central de Autoridade e Demanda - Gustavo Garcia / Vamo
 
-Sistema local para gerar ideias de conteudo para Instagram, enviar briefing por WhatsApp, coletar metricas do Instagram Graph API e aprender com a performance real dos posts.
+Sistema local para transformar pensamentos, bastidores, aprendizados e temas de negocio em conteudos que constroem autoridade para Gustavo Garcia e demanda qualificada para a Vamo.
 
-Agora a geracao segue o contrato operacional da VAMO: a cada 10 conteudos, o sistema força 4 topo, 3 meio e 3 fundo; cada post sai com objetivo, funil, formato recomendado, gancho, roteiro falado, momento de tela, interpretacao, CTA, legenda e titulo de Reels. A inteligencia prioriza conteudos que aproximam o decisor do diagnostico e reduz sinais de vaidade.
+A Vamo e posicionada como uma solucao de performance operacional comercial: diagnostica gargalos em vendas, atendimento e pos-venda, redesenha processos, cria ou adapta sistemas de execucao, implementa na rotina do cliente, treina a equipe e otimiza continuamente.
+
+A marca pessoal do Gustavo combina cinco pilares:
+
+- Vamo / Performance Comercial
+- Empreendedorismo real e construcao do zero
+- Fe, valores e decisao
+- Familia e responsabilidade
+- Oferta / Diagnostico
+
+Agora a geracao segue um contrato editorial: cada post sai com objetivo, funil, pilar, intencao estrategica, tipo de conteudo, tese, gancho, roteiro falado, conexao com a Vamo, risco generico, CTA e scores de autoridade, demanda, conexao, autenticidade e alinhamento com a Vamo. A inteligencia nao mede conteudos de conexao apenas por lead; ela tambem olha comentarios, salvamentos, compartilhamentos, respostas e crescimento de seguidores.
 
 ## O que ja foi criado
 
@@ -75,15 +85,24 @@ APIFY_LINKEDIN_PROFILE_URLS=https://www.linkedin.com/in/perfil-1/|https://www.li
 
 O LinkedIn agora funciona automaticamente por busca em `APIFY_LINKEDIN_SEARCH_QUERIES`. `APIFY_LINKEDIN_PROFILE_URLS` é opcional, apenas para monitorar perfis ou empresas específicas. O Instagram pode usar hashtags em `APIFY_INSTAGRAM_HASHTAGS` ou URLs diretas em `APIFY_INSTAGRAM_URLS`.
 
-Dados do criador:
+Dados do criador e posicionamento:
 
 ```env
-CREATOR_NAME=Seu nome
-CREATOR_PARTNER=Pedro
-CREATOR_PRODUCT=Consultoria de reestruturacao comercial
+CREATOR_NAME=Gustavo Garcia
+CREATOR_PARTNER=
+CREATOR_PRODUCT=Vamo
 CREATOR_CTA_LINK=https://seulink.com
 CREATOR_BIO=Um paragrafo sobre sua experiencia, momento atual e diferencial.
 CREATOR_HAS_CASES=false
+CREATOR_POSITIONING=Fundador em construcao, cofundador da Vamo, falando sobre performance comercial, empreendedorismo real, fe, familia e construcao do zero.
+CREATOR_FAITH_BOUNDARY=Falar de fe com maturidade, sem parecer pregacao solta e sempre conectando com decisao, responsabilidade, carater, disciplina e vida real.
+CREATOR_FAMILY_BOUNDARY=Falar de familia como responsabilidade e bastidor, sem exposicao desnecessaria e sem usar familia como isca de engajamento.
+VAMO_POSITIONING=Solucao de performance operacional comercial que combina diagnostico, processos, sistemas e implementacao.
+VAMO_THESIS=Empresas nao perdem resultado apenas por falta de demanda. Muitas perdem vendas, atendimento e retencao por falhas invisiveis no processo comercial.
+VAMO_OFFER=Diagnostico, mapeamento de gargalos, redesenho de processo, sistema de execucao, implantacao, treinamento e otimizacao continua.
+VAMO_METHOD=Diagnosticar, mapear, redesenhar, desenvolver, implementar e otimizar.
+VAMO_ICP=Empresas com operacao comercial ativa, leads por WhatsApp, Instagram, site, indicacao ou trafego pago, e problemas de follow-up, atendimento, controle ou pos-venda.
+VAMO_FORBIDDEN_POSITIONING=Nao posicionar como software isolado, CRM tradicional, agencia de marketing, software house generica ou consultoria que so entrega diagnostico.
 ```
 
 Seguranca:

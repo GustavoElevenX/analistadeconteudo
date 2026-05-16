@@ -6,6 +6,7 @@ import { generateDailyContents } from './openai.js';
 import { syncRecentMetrics } from './instagram.js';
 import { getLatestPatterns, updatePatterns } from './intelligence.js';
 import { sendDailyBriefing } from './whatsapp.js';
+import { generatePostingSchedule } from './posting-time-engine.js';
 
 export async function runDailyGeneration(date = todayISO()) {
   try {
@@ -81,6 +82,7 @@ export function getStatus() {
     ok: true,
     date: todayISO(),
     timezone: config.timezone,
+    postingSchedule: generatePostingSchedule({ patterns: getLatestPatterns() }),
     todayCount,
     latestContents: contents,
     lastRuns,

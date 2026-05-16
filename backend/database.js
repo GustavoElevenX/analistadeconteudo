@@ -19,12 +19,16 @@ export function initDb() {
       objetivo_post TEXT,
       funil TEXT NOT NULL,
       pillar TEXT NOT NULL,
+      content_intent TEXT,
+      content_type TEXT,
       sequencia_nome TEXT,
       sequencia_parte INTEGER DEFAULT 1,
+      tese TEXT,
       tema TEXT NOT NULL,
       formato_recomendado TEXT,
       gancho TEXT NOT NULL,
       roteiro_falado TEXT,
+      pausas_entonacao TEXT,
       momento_mostrar_tela TEXT,
       interpretacao TEXT,
       estrutura TEXT NOT NULL,
@@ -33,7 +37,15 @@ export function initDb() {
       legenda TEXT,
       titulo_reels TEXT,
       hashtags TEXT NOT NULL,
+      conexao_com_vamo TEXT,
+      risco_generico TEXT,
       porque_gera_leads TEXT NOT NULL,
+      score_autoridade REAL DEFAULT 0,
+      score_demanda REAL DEFAULT 0,
+      score_conexao REAL DEFAULT 0,
+      score_autenticidade REAL DEFAULT 0,
+      score_vamo_alignment REAL DEFAULT 0,
+      score_final REAL DEFAULT 0,
       source_headline TEXT,
       source_url TEXT,
       used INTEGER DEFAULT 0,
@@ -156,15 +168,21 @@ export function insertSources(date, sources) {
 export function insertContents(date, contents) {
   const stmt = db.prepare(`
     INSERT INTO contents (
-      date, objetivo_post, funil, pillar, sequencia_nome, sequencia_parte, tema,
-      formato_recomendado, gancho, roteiro_falado, momento_mostrar_tela,
+      date, objetivo_post, funil, pillar, content_intent, content_type,
+      sequencia_nome, sequencia_parte, tese, tema,
+      formato_recomendado, gancho, roteiro_falado, pausas_entonacao, momento_mostrar_tela,
       interpretacao, estrutura, cta_tipo, cta_texto, legenda, titulo_reels,
-      hashtags, porque_gera_leads, source_headline, source_url
+      hashtags, conexao_com_vamo, risco_generico, porque_gera_leads,
+      score_autoridade, score_demanda, score_conexao, score_autenticidade,
+      score_vamo_alignment, score_final, source_headline, source_url
     ) VALUES (
-      @date, @objetivo_post, @funil, @pillar, @sequencia_nome, @sequencia_parte, @tema,
-      @formato_recomendado, @gancho, @roteiro_falado, @momento_mostrar_tela,
+      @date, @objetivo_post, @funil, @pillar, @content_intent, @content_type,
+      @sequencia_nome, @sequencia_parte, @tese, @tema,
+      @formato_recomendado, @gancho, @roteiro_falado, @pausas_entonacao, @momento_mostrar_tela,
       @interpretacao, @estrutura, @cta_tipo, @cta_texto, @legenda, @titulo_reels,
-      @hashtags, @porque_gera_leads, @source_headline, @source_url
+      @hashtags, @conexao_com_vamo, @risco_generico, @porque_gera_leads,
+      @score_autoridade, @score_demanda, @score_conexao, @score_autenticidade,
+      @score_vamo_alignment, @score_final, @source_headline, @source_url
     )
   `);
   const tx = db.transaction(items => {
@@ -180,13 +198,17 @@ function normalizeContent(date, item) {
     date,
     objetivo_post: item.objetivo_post || objectiveForFunil(item.funil),
     funil: item.funil || 'topo',
-    pillar: item.pillar || 'vendas',
+    pillar: normalizePillar(item.pillar || item.pilar || 'vamo'),
+    content_intent: item.content_intent || item.intent || '',
+    content_type: item.content_type || item.formato || '',
     sequencia_nome: item.sequencia_nome || '',
     sequencia_parte: Number(item.sequencia_parte || 1),
+    tese: item.tese || '',
     tema: item.tema || 'Tema comercial',
     formato_recomendado: item.formato_recomendado || 'Camera direta',
     gancho: item.gancho || '',
     roteiro_falado: item.roteiro_falado || '',
+    pausas_entonacao: item.pausas_entonacao || item.pausas || '',
     momento_mostrar_tela: item.momento_mostrar_tela || '',
     interpretacao: item.interpretacao || '',
     estrutura: JSON.stringify(item.estrutura || []),
@@ -195,10 +217,28 @@ function normalizeContent(date, item) {
     legenda: item.legenda || '',
     titulo_reels: item.titulo_reels || '',
     hashtags: JSON.stringify(item.hashtags || []),
+    conexao_com_vamo: item.conexao_com_vamo || '',
+    risco_generico: item.risco_generico || item.risco || '',
     porque_gera_leads: item.porque_gera_leads || item.porque || '',
+    score_autoridade: Number(item.score_autoridade || 0),
+    score_demanda: Number(item.score_demanda || 0),
+    score_conexao: Number(item.score_conexao || 0),
+    score_autenticidade: Number(item.score_autenticidade || 0),
+    score_vamo_alignment: Number(item.score_vamo_alignment || 0),
+    score_final: Number(item.score_final || 0),
     source_headline: item.source_headline || item.sourceHeadline || '',
     source_url: item.source_url || item.sourceUrl || ''
   };
+}
+
+function normalizePillar(value) {
+  const text = String(value || '').toLowerCase();
+  if (text.includes('vendas') || text.includes('comercial') || text.includes('vamo')) return 'vamo';
+  if (text.includes('empreendedor')) return 'empreendedorismo';
+  if (text.includes('fe') || text.includes('fé')) return 'fe';
+  if (text.includes('famil')) return 'familia';
+  if (text.includes('oferta') || text.includes('diagn')) return 'oferta';
+  return 'vamo';
 }
 
 function objectiveForFunil(funil) {
@@ -270,14 +310,26 @@ function ensureMigrations() {
   }
   const contentMigrations = {
     objetivo_post: 'TEXT',
+    content_intent: 'TEXT',
+    content_type: 'TEXT',
     sequencia_nome: 'TEXT',
     sequencia_parte: 'INTEGER DEFAULT 1',
+    tese: 'TEXT',
     formato_recomendado: 'TEXT',
     roteiro_falado: 'TEXT',
+    pausas_entonacao: 'TEXT',
     momento_mostrar_tela: 'TEXT',
     interpretacao: 'TEXT',
     legenda: 'TEXT',
-    titulo_reels: 'TEXT'
+    titulo_reels: 'TEXT',
+    conexao_com_vamo: 'TEXT',
+    risco_generico: 'TEXT',
+    score_autoridade: 'REAL DEFAULT 0',
+    score_demanda: 'REAL DEFAULT 0',
+    score_conexao: 'REAL DEFAULT 0',
+    score_autenticidade: 'REAL DEFAULT 0',
+    score_vamo_alignment: 'REAL DEFAULT 0',
+    score_final: 'REAL DEFAULT 0'
   };
   for (const [column, definition] of Object.entries(contentMigrations)) {
     if (!contentColumns.includes(column)) {

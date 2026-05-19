@@ -1,18 +1,29 @@
-# Central de Autoridade e Demanda - Gustavo Garcia / Vamo
+# Central de Autoridade e Demanda - Gustavo Garcia / VAMO
 
-Sistema local para transformar pensamentos, bastidores, aprendizados e temas de negocio em conteudos que constroem autoridade para Gustavo Garcia e demanda qualificada para a Vamo.
+Sistema local para transformar pensamentos, bastidores, aprendizados e temas de negocio em conteudos que constroem autoridade para Gustavo Garcia e demanda qualificada para a VAMO.
 
-A Vamo e posicionada como uma solucao de performance operacional comercial: diagnostica gargalos em vendas, atendimento e pos-venda, redesenha processos, cria ou adapta sistemas de execucao, implementa na rotina do cliente, treina a equipe e otimiza continuamente.
+A VAMO e comunicada como uma solucao de performance comercial: identifica vazamentos de venda e implanta a estrutura para corrigir com processo, IA, automacoes e acompanhamento.
+
+O sistema nao deve gerar conteudos de IA solta, automacao solta, CRM generico ou dicas rasas. Cada conteudo deve ter pilar, funil, eixo narrativo, papel estrategico, percepcao desejada e ponte coerente para a VAMO quando fizer sentido.
 
 A marca pessoal do Gustavo combina cinco pilares:
 
-- Vamo / Performance Comercial
-- Empreendedorismo real e construcao do zero
-- Fe, valores e decisao
-- Familia e responsabilidade
-- Oferta / Diagnostico
+- VAMO / Performance Comercial: 45%
+- Empreendedorismo real e construcao do zero: 20%
+- Fe, valores e decisao: 15%
+- Familia e responsabilidade: 10%
+- Oferta / Diagnostico: 10%
 
-Agora a geracao segue um contrato editorial: cada post sai com objetivo, funil, pilar, intencao estrategica, tipo de conteudo, tese, gancho, roteiro falado, conexao com a Vamo, risco generico, CTA e scores de autoridade, demanda, conexao, autenticidade e alinhamento com a Vamo. A inteligencia nao mede conteudos de conexao apenas por lead; ela tambem olha comentarios, salvamentos, compartilhamentos, respostas e crescimento de seguidores.
+Agora a geracao segue um contrato editorial: cada post sai com objetivo, funil, pilar, eixo narrativo, papel no funil, nivel de consciencia, tipo de vazamento, percepcao desejada, ponte para VAMO, direcao de gravacao, tese, gancho, roteiro falado, risco generico, CTA e scores de autoridade, demanda, conexao, autenticidade e alinhamento com a VAMO. A inteligencia nao mede conteudos de conexao apenas por lead; ela tambem olha comentarios, salvamentos, compartilhamentos, respostas e crescimento de seguidores.
+
+## Modos da Ideia da Cabeca
+
+- Automatico.
+- Narrativa VAMO.
+- Ideia contemporanea pensando em funil.
+- Fe, prosperidade e decisao.
+- Bastidor de empresario.
+- Oferta / diagnostico.
 
 ## O que ja foi criado
 
@@ -77,9 +88,9 @@ APIFY_ACTOR_GOOGLE_SEARCH=apify/google-search-scraper
 APIFY_ACTOR_INSTAGRAM=apify/instagram-scraper
 APIFY_ACTOR_LINKEDIN_SEARCH=harvestapi/linkedin-post-search
 APIFY_ACTOR_LINKEDIN=harvestapi/postagens-de-perfil-do-linkedin
-APIFY_GOOGLE_QUERIES="gestao comercial B2B Brasil"|"vendas B2B tendencias Brasil"
-APIFY_INSTAGRAM_HASHTAGS=vendasb2b|gestaocomercial|liderancacomercial
-APIFY_LINKEDIN_SEARCH_QUERIES="gestao comercial"|"vendas B2B"|"lideranca comercial"|"forecast vendas"
+APIFY_GOOGLE_QUERIES="processo comercial atendimento pos-venda PME"|"empreendedorismo PME Brasil"|"fe valores responsabilidade decisao"
+APIFY_INSTAGRAM_HASHTAGS=vendasb2b|empreendedorismo|familia|lideranca|valores|negocios
+APIFY_LINKEDIN_SEARCH_QUERIES="processo comercial"|"atendimento ao cliente"|"empreendedorismo real"|"lideranca com valores"
 APIFY_LINKEDIN_PROFILE_URLS=https://www.linkedin.com/in/perfil-1/|https://www.linkedin.com/company/empresa-1/
 ```
 

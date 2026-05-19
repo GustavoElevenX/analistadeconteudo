@@ -145,6 +145,48 @@ function contentCard(content) {
           <p>${escapeHtml(content.tese)}</p>
         </div>
       ` : ''}
+      ${content.narrative_axis ? `
+        <div class="script-block highlight">
+          <strong>Eixo narrativo</strong>
+          <p>${escapeHtml(labelNarrativeAxis(content.narrative_axis))}</p>
+        </div>
+      ` : ''}
+      ${content.funnel_role || content.awareness_level ? `
+        <div class="strategy-grid">
+          <div>
+            <strong>Papel no funil</strong>
+            <p>${escapeHtml(labelFunnelRole(content.funnel_role))}</p>
+          </div>
+          <div>
+            <strong>Nivel de consciencia</strong>
+            <p>${escapeHtml(labelAwareness(content.awareness_level))}</p>
+          </div>
+        </div>
+      ` : ''}
+      ${content.desired_perception ? `
+        <div class="script-block">
+          <strong>Percepcao desejada</strong>
+          <p>${escapeHtml(content.desired_perception)}</p>
+        </div>
+      ` : ''}
+      ${content.offer_bridge ? `
+        <div class="script-block">
+          <strong>Ponte para VAMO</strong>
+          <p>${escapeHtml(content.offer_bridge)}</p>
+        </div>
+      ` : ''}
+      ${content.recording_direction ? `
+        <div class="script-block">
+          <strong>Direcao de gravacao</strong>
+          <p>${escapeHtml(content.recording_direction)}</p>
+        </div>
+      ` : ''}
+      ${Array.isArray(content.do_not_say) && content.do_not_say.length ? `
+        <div class="script-block danger">
+          <strong>Nao falar</strong>
+          <p>${content.do_not_say.map(escapeHtml).join(' | ')}</p>
+        </div>
+      ` : ''}
       <p class="hook">${escapeHtml(content.gancho)}</p>
       <div class="script-block">
         <strong>Roteiro falado</strong>
@@ -250,13 +292,28 @@ function bindCardButtons(root) {
 async function captureInsight() {
   const text = $('#insight-text').value.trim();
   if (!text) return toast('Escreva o insight primeiro.');
-  const data = await post('/api/capture-insight', { text });
+  const payload = {
+    text,
+    mode: $('#capture-mode')?.value || 'auto',
+    desiredFunil: $('#capture-funil')?.value || 'auto',
+    desiredPillar: $('#capture-pillar')?.value || 'auto'
+  };
+  const data = await post('/api/capture-insight', payload);
   const cards = (data.conteudos || data.insights || []).map((item, index) => ({
     id: `insight-${index}`,
     funil: item.funil,
     pillar: item.pillar || item.pilar || 'vamo',
     content_intent: item.content_intent || item.intent || '',
     content_type: item.content_type || item.formato || '',
+    narrative_axis: item.narrative_axis,
+    funnel_role: item.funnel_role,
+    awareness_level: item.awareness_level,
+    sales_leak_type: item.sales_leak_type,
+    desired_perception: item.desired_perception,
+    offer_bridge: item.offer_bridge,
+    recording_direction: item.recording_direction,
+    do_not_say: item.do_not_say || [],
+    expected_result: item.expected_result,
     objetivo_post: item.objetivo_post,
     tese: item.tese,
     formato_recomendado: item.formato_recomendado,
@@ -330,7 +387,7 @@ async function loadAnalytics() {
   $('#patterns-panel').innerHTML = `
     <h3>Pesos atuais</h3>
     <p>Funil: topo ${percent(p.weight_topo)}, meio ${percent(p.weight_meio)}, fundo ${percent(p.weight_fundo)}</p>
-    <p>Pilares: Vamo ${percent(p.weight_vamo || p.weight_vendas)}, empreendedorismo ${percent(p.weight_empreendedorismo)}, fe ${percent(p.weight_fe)}, familia ${percent(p.weight_familia || p.weight_vida)}, oferta ${percent(p.weight_oferta)}</p>
+    <p>Pilares: Vamo ${percent(p.weight_vamo)}, empreendedorismo ${percent(p.weight_empreendedorismo)}, fe ${percent(p.weight_fe)}, familia ${percent(p.weight_familia)}, oferta ${percent(p.weight_oferta)}</p>
     <h3>O sistema aprendeu</h3>
     <p>${escapeHtml(p.gpt_analysis || 'Ainda sem dados suficientes.')}</p>
   `;
@@ -385,6 +442,24 @@ ${content.roteiro_falado || ''}
 PAUSAS / ENTONACAO:
 ${content.pausas_entonacao || content.momento_mostrar_tela || ''}
 
+EIXO NARRATIVO:
+${labelNarrativeAxis(content.narrative_axis)}
+
+PAPEL NO FUNIL:
+${labelFunnelRole(content.funnel_role)}
+
+PERCEPCAO DESEJADA:
+${content.desired_perception || ''}
+
+PONTE PARA VAMO:
+${content.offer_bridge || ''}
+
+DIRECAO DE GRAVACAO:
+${content.recording_direction || ''}
+
+NAO FALAR:
+${(content.do_not_say || []).join(' | ')}
+
 CTA:
 ${content.cta_texto || ''}
 
@@ -423,7 +498,10 @@ function labelIntentType(intent) {
     provar_metodo: 'Provar metodo',
     vender: 'Vender',
     reativar: 'Reativar',
-    bastidor: 'Bastidor'
+    bastidor: 'Bastidor',
+    aumentar_percepcao_de_risco: 'Risco',
+    nomear_problema: 'Nomear problema',
+    preparar_demanda: 'Preparar demanda'
   }[intent] || 'Intencao';
 }
 
@@ -439,8 +517,52 @@ function labelContentType(type) {
     carrossel: 'Carrossel',
     story: 'Story',
     prova_de_construcao: 'Prova',
-    convite_diagnostico: 'Diagnostico'
+    convite_diagnostico: 'Diagnostico',
+    narrativa_de_funil: 'Funil',
+    alerta_comercial: 'Alerta',
+    reflexao_empresarial: 'Reflexao'
   }[type] || 'Tipo';
+}
+
+function labelNarrativeAxis(value) {
+  return {
+    vazamento_comercial: 'Vazamento comercial',
+    processo_antes_da_ia: 'Processo antes da IA',
+    ia_como_meio: 'IA como meio',
+    previsibilidade_comercial: 'Previsibilidade comercial',
+    gestor_sem_visibilidade: 'Gestor sem visibilidade',
+    whatsapp_sem_processo: 'WhatsApp sem processo',
+    follow_up_falho: 'Follow-up falho',
+    crm_morto: 'CRM morto',
+    bastidor_de_construcao: 'Bastidor de construcao',
+    fe_valores_decisao: 'Fe, valores e decisao',
+    prosperidade_com_responsabilidade: 'Prosperidade com responsabilidade',
+    familia_responsabilidade: 'Familia e responsabilidade',
+    diagnostico_vamo: 'Diagnostico VAMO'
+  }[value] || value || '';
+}
+
+function labelFunnelRole(value) {
+  return {
+    atrair_dor_latente: 'Atrair dor latente',
+    nomear_problema: 'Nomear problema',
+    quebrar_crenca: 'Quebrar crenca',
+    aumentar_percepcao_de_risco: 'Aumentar percepcao de risco',
+    provar_raciocinio: 'Provar raciocinio',
+    criar_conexao: 'Criar conexao',
+    preparar_demanda: 'Preparar demanda',
+    converter_para_diagnostico: 'Converter para diagnostico'
+  }[value] || value || '';
+}
+
+function labelAwareness(value) {
+  return {
+    inconsciente_do_problema: 'Ainda nao percebe o problema',
+    sente_sintoma: 'Sente o sintoma',
+    reconhece_gargalo: 'Reconhece o gargalo',
+    busca_solucao: 'Busca solucao',
+    pronto_para_conversar: 'Pronto para conversar'
+  }[value] || value || '';
 }
 
 function scorePill(label, value) {

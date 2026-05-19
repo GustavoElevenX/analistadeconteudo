@@ -21,6 +21,7 @@
       <button class="nav-item" data-view="capture">Ideia da cabeca</button>
       <button class="nav-item" data-view="posting">Plano editorial</button>
       <button class="nav-item" data-view="analytics">Analytics</button>
+      <button class="nav-item" data-view="status">Status</button>
       <button class="nav-item" data-view="favorites">Biblioteca</button>
       <button class="nav-item" data-view="settings">Config</button>
     </nav>
@@ -70,7 +71,41 @@
         </div>
       </header>
       <div class="panel">
-        <textarea id="insight-text" placeholder="Escreva qualquer pensamento, bastidor, decisao, situacao de familia, fe ou operacao comercial..."></textarea>
+        <div class="capture-controls">
+          <label class="select-field">
+            <span>Modo da ideia</span>
+            <select id="capture-mode">
+              <option value="auto">Automatico</option>
+              <option value="narrativa_vamo">Narrativa VAMO</option>
+              <option value="funil_contemporaneo">Ideia contemporanea pensando em funil</option>
+              <option value="fe_prosperidade">Fe, prosperidade e decisao</option>
+              <option value="bastidor_empresario">Bastidor de empresario</option>
+              <option value="oferta_diagnostico">Oferta / diagnostico</option>
+            </select>
+          </label>
+          <label class="select-field">
+            <span>Funil desejado</span>
+            <select id="capture-funil">
+              <option value="auto">Automatico</option>
+              <option value="topo">Topo</option>
+              <option value="meio">Meio</option>
+              <option value="fundo">Fundo</option>
+            </select>
+          </label>
+          <label class="select-field">
+            <span>Pilar desejado</span>
+            <select id="capture-pillar">
+              <option value="auto">Automatico</option>
+              <option value="vamo">VAMO</option>
+              <option value="empreendedorismo">Empreendedorismo</option>
+              <option value="fe">Fe / prosperidade</option>
+              <option value="familia">Familia</option>
+              <option value="oferta">Oferta</option>
+            </select>
+          </label>
+        </div>
+        <p class="helper-text">O sistema deve preservar sua ideia, mas organizar como narrativa, funil e percepcao desejada. Ele nao deve transformar tudo em venda direta.</p>
+        <textarea id="insight-text" placeholder="Escreva uma ideia solta, bastidor, reflexao de fe/prosperidade, situacao de familia, aprendizado de empresario ou problema comercial. O analista vai transformar isso em conteudo com funcao de funil."></textarea>
         <button class="primary" id="capture-btn">Gerar versoes publicaveis</button>
       </div>
       <div id="capture-result" class="content-grid"></div>

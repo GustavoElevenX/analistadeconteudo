@@ -83,6 +83,37 @@ h1 { font-family: "Sora", sans-serif; font-size: 28px; line-height: 1.15; margin
   border-radius: 6px;
   padding: 10px;
 }
+.strategy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.strategy-grid div {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+}
+.strategy-grid strong {
+  display: block;
+  color: var(--text);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 4px;
+}
+.strategy-grid p {
+  color: var(--text2);
+  margin: 0;
+  line-height: 1.45;
+}
+.script-block.danger {
+  border-left: 2px solid #e47c6a;
+  background: rgba(228, 124, 106, 0.08);
+  border-radius: 6px;
+  padding: 10px;
+}
 .structure { color: var(--text2); padding-left: 18px; margin: 0 0 12px; }
 .score-row {
   display: grid;
@@ -130,6 +161,18 @@ h1 { font-family: "Sora", sans-serif; font-size: 28px; line-height: 1.15; margin
 .manual-metrics button { grid-column: 1 / -1; }
 
 .panel { margin-bottom: 16px; }
+.capture-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.helper-text {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
 textarea {
   width: 100%;
   min-height: 130px;
@@ -229,7 +272,7 @@ textarea:focus { border-color: #4a4740; }
   .main { padding: 22px 14px; }
   .page-head { align-items: flex-start; }
   h1 { font-size: 24px; }
-  .content-grid, .metric-grid { grid-template-columns: 1fr; }
+  .content-grid, .metric-grid, .capture-controls, .strategy-grid { grid-template-columns: 1fr; }
   .posting-summary { grid-template-columns: 1fr; }
   .schedule-card { grid-template-columns: 76px 1fr; }
   .schedule-time { font-size: 20px; }

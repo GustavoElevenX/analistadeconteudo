@@ -5,11 +5,11 @@
 
 ## Atualizacao estrategica — Gustavo Garcia / Vamo
 
-O sistema deixa de ser apenas um gerador de ideias de gestao comercial e passa a operar como editor-chefe da marca pessoal de Gustavo Garcia, cofundador da Vamo.
+O sistema opera como editor-chefe da narrativa comercial da marca pessoal de Gustavo Garcia, cofundador da VAMO, conectando autoridade, demanda, empreendedorismo real, fe, prosperidade, valores, familia e responsabilidade.
 
-A Vamo deve ser posicionada como solucao de performance operacional comercial que une diagnostico, processos, sistemas e implementacao. Ela diagnostica gargalos em vendas, atendimento e pos-venda, redesenha processos, cria ou adapta sistemas de execucao, implementa na rotina do cliente, treina a equipe e otimiza continuamente.
+A VAMO deve ser comunicada como solucao de performance comercial: identifica onde a operacao comercial esta perdendo vendas e implanta a estrutura para corrigir isso com processo, IA, automacoes e acompanhamento.
 
-A Vamo nunca deve parecer software isolado, CRM tradicional, agencia de marketing, software house generica ou consultoria que so entrega diagnostico.
+A VAMO nunca deve parecer software isolado, CRM tradicional, agencia de automacao, software house, dev freelancer, empresa de bot, dashboard ou consultoria que so entrega PDF. IA e tecnologia sao meios, nao promessa principal.
 
 Tese central: empresas nao perdem resultado apenas por falta de demanda. Muitas perdem vendas, atendimento e retencao por falhas invisiveis no processo comercial: lead sem retorno, follow-up fraco, ausencia de rotina, atendimento sem padrao, pos-venda inexistente e gestor sem visibilidade.
 
@@ -23,82 +23,86 @@ Pilares editoriais novos:
 | Familia e Responsabilidade | 10% | Mostrar o peso real de construir uma empresa tendo familia, futuro e obrigacoes. |
 | Oferta / Diagnostico | 10% | Convidar para diagnostico, conversa, analise ou entrada no funil da Vamo. |
 
-Todo conteudo gerado deve incluir `content_intent`, `content_type`, `tese`, `conexao_com_vamo`, `risco_generico`, `score_autoridade`, `score_demanda`, `score_conexao`, `score_autenticidade` e `score_vamo_alignment`.
+Todo conteudo gerado deve incluir `content_intent`, `content_type`, `narrative_axis`, `funnel_role`, `awareness_level`, `sales_leak_type`, `desired_perception`, `offer_bridge`, `recording_direction`, `do_not_say`, `expected_result`, `tese`, `conexao_com_vamo`, `risco_generico`, `score_autoridade`, `score_demanda`, `score_conexao`, `score_autenticidade` e `score_vamo_alignment`.
 
-O recurso "Ideia da cabeca" transforma pensamento bruto em conteudo publicavel, com versoes para camera direta, story, carrossel, post mais agressivo, versao pessoal e sugestao de CTA.
+O recurso "Ideia da cabeca" transforma pensamento bruto em conteudo publicavel e aceita os modos Automatico, Narrativa VAMO, Ideia contemporanea pensando em funil, Fe/prosperidade e decisao, Bastidor de empresario e Oferta/diagnostico.
 
 Conteudos de fe, familia e bastidor sao permitidos quando tratados com maturidade. Eles nao devem ser avaliados apenas por lead, mas tambem por comentarios, salvamentos, compartilhamentos, respostas, crescimento de seguidores e fortalecimento de autoridade.
 
 ---
 
-## 1. VISÃO GERAL DO PROJETO
+## 1. VISAO GERAL DO PROJETO
 
-Este sistema é um **analista de conteúdo virtual com inteligência de performance** para um criador de conteúdo no Instagram focado em gestão comercial, liderança, vendas B2B e fé católica nos negócios.
+Este sistema e um **analista de conteudo virtual com inteligencia de performance** para a marca pessoal de Gustavo Garcia, cofundador da Vamo. Ele transforma ideias, bastidores, aprendizados e temas de negocio em conteudos que constroem autoridade para Gustavo e demanda qualificada para a Vamo.
 
-O sistema roda 24/7 num computador fixo em casa. Ele busca notícias e tendências automaticamente via Apify, processa tudo com GPT-4o e gera até 20 ideias de conteúdo por dia, já classificadas no funil de vendas correto. Às 7h da manhã envia um briefing resumido via WhatsApp (CallMeBot). A cada 2 horas, coleta métricas reais do Instagram via Graph API, analisa o que está performando e aprende continuamente — ajustando os pesos da geração de conteúdo com base no que realmente funciona para aquele criador específico. O frontend é um site responsivo acessível via link.
+O projeto combina performance comercial, empreendedorismo real, fe, valores, familia, responsabilidade e oferta. A fe deve ser tratada de forma ampla: principios, responsabilidade, decisao, carater, disciplina e valores aplicados a vida real. O sistema nao deve assumir uma linha religiosa especifica nem restringir o posicionamento a fe nos negocios.
+
+O sistema roda 24/7 num computador fixo em casa. Ele busca noticias e tendencias automaticamente via Apify, processa tudo com OpenAI e gera ate 20 ideias de conteudo por dia, ja classificadas no funil correto. As 7h da manha envia um briefing resumido via WhatsApp (CallMeBot). A cada 2 horas, coleta metricas reais do Instagram via Graph API, analisa o que esta performando e aprende continuamente, ajustando os pesos da geracao de conteudo com base no que realmente funciona para Gustavo. O frontend e um site responsivo acessivel via link.
 
 ### Objetivos do criador
-- Gerar leads qualificados via diagnóstico gratuito (link da bio)
-- Construir autoridade no nicho comercial/liderança
-- Postar 5–10 conteúdos por dia no Instagram
+- Gerar leads qualificados via diagnostico gratuito (link da bio)
+- Construir autoridade para Gustavo e demanda para a Vamo
+- Postar 5-10 conteudos por dia no Instagram
 - Nunca ficar sem ideia, mesmo sem acesso ao computador
-- Entender em tempo real o que performa e por quê — e que o sistema aprenda sozinho com isso
+- Entender em tempo real o que performa e por que, deixando o sistema aprender sozinho com isso
 
 ---
 
-## 2. PÚBLICO-ALVO DO CRIADOR
+## 2. PUBLICO-ALVO DO CRIADOR
 
-**Personas primárias:**
-- Diretor Comercial
-- Gestor de Vendas
-- Empresário / Dono de empresa PME
+**Personas primarias:**
+- Empresario / dono de empresa PME
+- Fundador em construcao
+- Gestor com responsabilidade por vendas, atendimento ou pos-venda
 
-**Personas secundárias:**
-- Vendedor Sênior em busca de crescimento
-- Empreendedor iniciante com time comercial
+**Personas secundarias:**
+- Diretor comercial
+- Gestor de vendas
+- Profissional senior buscando crescer com mais responsabilidade
 
-**Tom da comunicação:** Autoridade sem arrogância. Direto, provocativo, humano. Baseado em conhecimento próprio (sem cases de clientes ainda).
+**Tom da comunicacao:** Autoridade sem arrogancia. Direto, provocativo, humano. Baseado em conhecimento proprio, bastidores reais e principios claros.
 
 ---
 
-## 3. FUNIL DE CONTEÚDO (REGRA CENTRAL DO SISTEMA)
+## 3. FUNIL DE CONTEUDO (REGRA CENTRAL DO SISTEMA)
 
-O sistema deve classificar e gerar conteúdo seguindo rigorosamente este funil:
+O sistema deve classificar e gerar conteudo seguindo rigorosamente este funil:
 
 ```
-TOPO → Atrair quem não te conhece
-  - Temas leves, problemas comuns de vendas
-  - Erros clássicos, dados que surpreendem, provocações
-  - CTA: "Segue pra ver mais" ou "Salva esse vídeo"
-  - Métrica: alcance, novos seguidores
+TOPO -> Atrair quem nao te conhece
+  - Temas leves, problemas comuns, bastidores, tensoes de empreendedorismo e cenas reconheciveis
+  - Erros classicos, dados que surpreendem, provocacoes e pontos de vista humanos
+  - CTA: "Segue pra ver mais" ou "Salva esse video"
+  - Metrica: alcance, novos seguidores, compartilhamentos
 
-MEIO → Aprofundar confiança com quem já te conhece
-  - Como você pensa, sua visão, sua metodologia
-  - Ponto de vista diferenciado sobre situações do dia a dia comercial
-  - CTA: "Comenta X aqui embaixo" ou "Me conta nos comentários"
-  - Métrica: engajamento, comentários, salvamentos
+MEIO -> Aprofundar confianca com quem ja te conhece
+  - Como Gustavo pensa, decide, constroi, lidera e conecta trabalho, fe, valores e familia
+  - Ponto de vista diferenciado sobre operacao comercial, empreendedorismo e responsabilidade
+  - CTA: "Comenta X aqui embaixo" ou "Me conta nos comentarios"
+  - Metrica: engajamento, comentarios, salvamentos, respostas
 
-FUNDO → Converter em lead qualificado
+FUNDO -> Converter em lead qualificado
   - Especificidade: resolve um problema concreto e convida pra conversa
-  - Metodologia aplicada, diagnóstico de situação
-  - CTA: "Acessa o link da bio e faz o diagnóstico gratuito" 
-  - Métrica: cliques no link, respostas de DM, diagnósticos preenchidos
+  - Diagnostico de situacao, metodo aplicado e conexao clara com a Vamo
+  - CTA: "Acessa o link da bio e faz o diagnostico gratuito"
+  - Metrica: cliques no link, respostas de DM, diagnosticos preenchidos
 ```
 
-**Regra importante:** O sistema deve identificar automaticamente o melhor nível de funil para cada conteúdo gerado, com base no tema e na profundidade. O criador não precisa escolher — o sistema decide e explica o porquê.
+**Regra importante:** O sistema deve identificar automaticamente o melhor nivel de funil para cada conteudo gerado, com base no tema, profundidade e intencao. O criador nao precisa escolher; o sistema decide e explica o por que.
 
 ---
 
-## 4. PILARES DE CONTEÚDO
+## 4. PILARES DE CONTEUDO
 
-O sistema deve distribuir os 20 conteúdos do dia entre estes pilares:
+O sistema deve distribuir os 20 conteudos do dia entre estes pilares:
 
 | Pilar | Peso | Temas |
 |-------|------|-------|
-| Vendas e Gestão Comercial | 55% | Gestão de times, processo de vendas, liderança comercial, erros de diretores, métricas, CRM, follow-up, quota |
-| Empreendedorismo / Negócios | 25% | Tomada de decisão, crescimento de empresa, cultura organizacional, contratação |
-| Fé Católica e Propósito | 15% | Princípios cristãos nos negócios, propósito, discernimento, liderança com valores |
-| Bastidores / Vida | 5% | Momentos reais, construindo a consultoria, parceria com o sócio Pedro |
+| Vamo / Performance Comercial | 45% | Dores reais de venda, atendimento, pos-venda, processo, CRM, follow-up, previsibilidade e operacao comercial |
+| Empreendedorismo Real | 20% | Construcao do zero, tomada de decisao, risco, aprendizado pratico, visao de negocio e bastidores da Vamo |
+| Fe, Valores e Decisao | 15% | Fe ampla, principios, responsabilidade, carater, disciplina, discernimento e decisoes dificeis |
+| Familia e Responsabilidade | 10% | Familia como responsabilidade, futuro, obrigacoes, rotina real e maturidade, sem exposicao desnecessaria |
+| Oferta / Diagnostico | 10% | Diagnostico, conversa, analise, mapeamento de gargalos e entrada no funil da Vamo |
 
 ---
 
@@ -332,10 +336,11 @@ CREATE TABLE IF NOT EXISTS intelligence_patterns (
   weight_meio REAL DEFAULT 0.40,
   weight_fundo REAL DEFAULT 0.25,
   -- Pesos por pilar (soma = 1.0)
-  weight_vendas REAL DEFAULT 0.55,
+  weight_vamo REAL DEFAULT 0.45,
   weight_empreendedorismo REAL DEFAULT 0.25,
   weight_fe REAL DEFAULT 0.15,
-  weight_vida REAL DEFAULT 0.05,
+  weight_familia REAL DEFAULT 0.10,
+  weight_oferta REAL DEFAULT 0.10,
   -- Melhores fórmulas de gancho identificadas
   top_hook_formulas TEXT,                       -- JSON: array de fórmulas que mais performaram
   -- Horários que mais performam
@@ -375,29 +380,33 @@ Deve executar actors em paralelo e retornar um array de fontes normalizadas.
 
 ```javascript
 const SEARCH_QUERIES = {
-  comercial: [
-    'gestão de vendas B2B',
-    'diretor comercial tendências',
-    'time de vendas liderança',
-    'funil de vendas erros',
-    'CRM processo comercial',
+  vamo: [
+    'processo comercial atendimento pos-venda PME',
+    'follow-up vendas WhatsApp empresa',
+    'operacao comercial gargalos previsibilidade',
+    'CRM processo comercial execucao',
   ],
   empreendedorismo: [
     'empreendedorismo PME Brasil',
-    'liderança empresarial',
-    'crescimento empresa pequena',
-    'tomada de decisão empresário',
+    'construcao de empresa do zero Brasil',
+    'fundador em construcao rotina decisao',
+    'tomada de decisao empresario responsabilidade',
   ],
-  fe_negocios: [
-    'fé propósito negócios',
-    'empresário católico',
-    'valores cristãos liderança',
-    'propósito empreendimento',
+  fe_valores: [
+    'fe valores responsabilidade decisao',
+    'principios carater disciplina empreendedor',
+    'lideranca com valores responsabilidade',
+    'proposito trabalho familia decisao',
+  ],
+  familia: [
+    'empreendedorismo familia responsabilidade',
+    'conciliar empresa familia rotina',
+    'construir negocio com familia',
   ],
   tendencias: [
-    'vendas inteligência artificial',
-    'gestão comercial 2025',
-    'linkedin vendas tendência',
+    'inteligencia artificial pequenas empresas Brasil',
+    'atendimento WhatsApp empresas tendencia',
+    'pos-venda experiencia cliente PME',
   ]
 };
 ```
@@ -629,11 +638,12 @@ REGRAS DE DISTRIBUIÇÃO:
 - 40% Meio de funil (8 conteúdos)  
 - 25% Fundo de funil (5 conteúdos)
 
-DISTRIBUIÇÃO DE PILARES:
-- 55% Vendas/Gestão Comercial
-- 25% Empreendedorismo
-- 15% Fé Católica/Propósito
-- 5% Bastidores
+DISTRIBUICAO DE PILARES:
+- 45% Vamo / Performance Comercial
+- 20% Empreendedorismo Real
+- 15% Fe, Valores e Decisao
+- 10% Familia e Responsabilidade
+- 10% Oferta / Diagnostico
 
 Para cada conteúdo, indique se a notícia foi o gatilho ou se é conhecimento atemporal.
 Varie completamente os formatos de gancho — não repita fórmulas.
@@ -643,7 +653,7 @@ Responda APENAS com JSON válido:
   "contents": [
     {
       "funil": "topo|meio|fundo",
-      "pillar": "vendas|empreendedorismo|fe|vida",
+      "pillar": "vamo|empreendedorismo|fe|familia|oferta",
       "tema": "Resumo em 6-8 palavras",
       "gancho": "Exatamente o que falar nos primeiros 5-10 segundos",
       "estrutura": ["Ponto 1 a desenvolver", "Ponto 2", "Ponto 3"],

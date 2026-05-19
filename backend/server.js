@@ -18,6 +18,10 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
+app.get('/manifest.json', (req, res) => {
+  res.sendFile(path.join(frontendDir, 'manifest.json'));
+});
+
 if (config.basicAuthUser && config.basicAuthPass) {
   app.use(basicAuth({
     users: { [config.basicAuthUser]: config.basicAuthPass },
@@ -121,10 +125,28 @@ app.post('/api/generate-now', async (req, res, next) => {
 app.post('/api/capture-insight', async (req, res, next) => {
   try {
     if (!req.body?.text) return res.status(400).json({ error: 'Envie { "text": "..." }.' });
-    res.json(await captureInsight(req.body.text));
+    res.json(await captureInsight({
+      insightText: req.body.text,
+      mode: req.body.mode || 'auto',
+      desiredFunil: req.body.desiredFunil || req.body.funil || 'auto',
+      desiredPillar: req.body.desiredPillar || req.body.pillar || 'auto'
+    }));
   } catch (error) {
     next(error);
   }
+});
+
+app.get('/api/editorial-context', (req, res) => {
+  res.json({
+    narrative: config.editorial,
+    weights: config.contentWeights,
+    vamo: config.vamo,
+    creator: {
+      name: config.creator.name,
+      product: config.creator.product,
+      positioning: config.creator.positioning
+    }
+  });
 });
 
 app.get('/api/stats', (req, res) => {

@@ -33,6 +33,24 @@ export const config = {
     icp: process.env.VAMO_ICP || '',
     forbiddenPositioning: process.env.VAMO_FORBIDDEN_POSITIONING || ''
   },
+  editorial: {
+    narrativeMother: process.env.VAMO_NARRATIVE_MOTHER || 'A VAMO identifica onde sua operacao comercial esta perdendo vendas e implanta a estrutura para corrigir isso com processo, IA, automacoes e acompanhamento.',
+    institutionalNarrative: process.env.VAMO_INSTITUTIONAL_NARRATIVE || 'A VAMO transforma operacoes comerciais confusas em operacoes mais previsiveis, usando processo, IA e tecnologia como meio.',
+    aggressiveNarrative: process.env.VAMO_AGGRESSIVE_NARRATIVE || 'Nao criamos sistemas para sua empresa parecer moderna. Criamos estrutura para sua empresa parar de perder venda por falta de processo, velocidade e acompanhamento.',
+    corePromise: process.env.VAMO_CORE_PROMISE || 'Menos venda perdida. Mais previsibilidade comercial.',
+    communicationRule: process.env.VAMO_COMMUNICATION_RULE || 'Comece pelo vazamento comercial, depois explique processo, e so entao cite IA, automacao ou sistema como meio.',
+    creatorNarrative: process.env.CREATOR_NARRATIVE || 'Eu transformo gargalos comerciais em sistemas inteligentes, automacoes e IA aplicada para empresas que querem vender com mais previsibilidade.',
+    prosperityBoundary: process.env.CREATOR_PROSPERITY_BOUNDARY || 'Falar de prosperidade como fruto de ordem, responsabilidade, trabalho, prudencia, disciplina e fe aplicada a pratica. Nunca prometer sucesso financeiro por fe.',
+    noTutorialRule: process.env.CONTENT_NO_TUTORIAL_RULE || 'Nao ensinar o cliente a construir sozinho. Mostrar o custo de construir errado.',
+    defaultContentMode: process.env.CONTENT_DEFAULT_MODE || 'narrativa_vamo'
+  },
+  contentWeights: {
+    vamo: Number(process.env.CONTENT_WEIGHT_VAMO || 45),
+    empreendedorismo: Number(process.env.CONTENT_WEIGHT_EMPREENDEDORISMO || 20),
+    fe: Number(process.env.CONTENT_WEIGHT_FE || 15),
+    familia: Number(process.env.CONTENT_WEIGHT_FAMILIA || 10),
+    oferta: Number(process.env.CONTENT_WEIGHT_OFERTA || 10)
+  },
   dailyContentLimit: Number(process.env.DAILY_CONTENT_LIMIT || 20),
   defaultPostsPerDay: Number(process.env.DEFAULT_POSTS_PER_DAY || 5),
   briefingTopPicks: Number(process.env.BRIEFING_TOP_PICKS || 5),

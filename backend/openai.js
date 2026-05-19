@@ -4,7 +4,7 @@ import { config } from './config.js';
 const client = config.openaiApiKey ? new OpenAI({ apiKey: config.openaiApiKey }) : null;
 
 const ALLOWED_PILLARS = ['vamo', 'empreendedorismo', 'fe', 'familia', 'oferta'];
-const ALLOWED_INTENTS = ['atrair', 'autoridade', 'conexao', 'educar', 'quebrar_crenca', 'provar_metodo', 'vender', 'reativar', 'bastidor'];
+const ALLOWED_INTENTS = ['atrair', 'autoridade', 'conexao', 'educar', 'quebrar_crenca', 'provar_metodo', 'vender', 'reativar', 'bastidor', 'aumentar_percepcao_de_risco', 'nomear_problema', 'preparar_demanda'];
 const ALLOWED_TYPES = [
   'camera_direta',
   'bastidor',
@@ -16,7 +16,50 @@ const ALLOWED_TYPES = [
   'carrossel',
   'story',
   'prova_de_construcao',
-  'convite_diagnostico'
+  'convite_diagnostico',
+  'narrativa_de_funil',
+  'alerta_comercial',
+  'reflexao_empresarial'
+];
+const ALLOWED_NARRATIVE_AXES = [
+  'vazamento_comercial',
+  'processo_antes_da_ia',
+  'ia_como_meio',
+  'previsibilidade_comercial',
+  'gestor_sem_visibilidade',
+  'whatsapp_sem_processo',
+  'follow_up_falho',
+  'crm_morto',
+  'bastidor_de_construcao',
+  'fe_valores_decisao',
+  'prosperidade_com_responsabilidade',
+  'familia_responsabilidade',
+  'diagnostico_vamo'
+];
+const ALLOWED_AWARENESS_LEVELS = [
+  'inconsciente_do_problema',
+  'sente_sintoma',
+  'reconhece_gargalo',
+  'busca_solucao',
+  'pronto_para_conversar'
+];
+const ALLOWED_EXPECTED_RESULTS = [
+  'alcance_qualificado',
+  'comentarios_de_identificacao',
+  'salvamentos',
+  'respostas_no_direct',
+  'cliques_no_diagnostico',
+  'reforco_de_autoridade'
+];
+const ALLOWED_FUNNEL_ROLES = [
+  'atrair_dor_latente',
+  'nomear_problema',
+  'quebrar_crenca',
+  'aumentar_percepcao_de_risco',
+  'provar_raciocinio',
+  'criar_conexao',
+  'preparar_demanda',
+  'converter_para_diagnostico'
 ];
 
 export async function generateDailyContents({ date, sources = [], patterns = null, limit = config.dailyContentLimit }) {
@@ -79,26 +122,56 @@ Corrija agora. Retorne exatamente ${limit} itens, sem placeholders, sem topicos 
   throw lastError;
 }
 
-export async function captureInsight(insightText) {
+export async function captureInsight(input) {
   ensureOpenAIClient();
+
+  const options = typeof input === 'string'
+    ? { insightText: input }
+    : (input || {});
+  const insightText = options.insightText || options.text || '';
+  const mode = normalizeCaptureMode(options.mode || config.editorial.defaultContentMode || 'auto');
+  const desiredFunil = normalizeDesired(options.desiredFunil, ['auto', 'topo', 'meio', 'fundo']);
+  const desiredPillar = normalizeDesired(options.desiredPillar, ['auto', ...ALLOWED_PILLARS]);
 
   const raw = await callJson(`
 O criador escreveu este pensamento bruto:
 "${insightText}"
 
-Transforme isso em conteudo publicavel para a marca pessoal de Gustavo Garcia / Vamo.
-Nao force todo insight para venda. Se o tema for fe, familia ou bastidor, preserve a natureza do insight e conecte com a Vamo apenas quando fizer sentido estrategico.
+Modo solicitado: ${mode}
+Funil desejado: ${desiredFunil}
+Pilar desejado: ${desiredPillar}
+
+Transforme isso em conteudo publicavel para a marca pessoal Gustavo Garcia / VAMO.
+
+Se o modo for narrativa_vamo:
+- conecte com vazamento comercial, processo, previsibilidade ou IA como meio.
+
+Se o modo for funil_contemporaneo:
+- leia a ideia como uma oportunidade de funil.
+- gere versoes para topo, meio e fundo.
+- explique qual versao serve para atrair, qual serve para educar e qual serve para converter.
+
+Se o modo for fe_prosperidade:
+- preserve a fe e a prosperidade como maturidade, ordem, responsabilidade e decisao.
+- nao force venda.
+
+Se o modo for bastidor_empresario:
+- transforme em conteudo de conexao e autoridade.
+- mostre raciocinio de empresario em construcao.
+
+Se o modo for oferta_diagnostico:
+- leve para o Mapa de Vazamento de Vendas.
+- mostre que antes de IA, automacao ou ferramenta vem diagnostico.
 
 Gere exatamente 6 versoes:
 1. Reels camera direta.
 2. Story.
 3. Carrossel.
-4. Post mais agressivo.
-5. Versao mais pessoal.
-6. Convite ou CTA recomendado.
+4. Post forte de opiniao.
+5. Versao pessoal/conexao.
+6. Versao com funcao clara de funil.
 
-Cada versao precisa trazer pilar, funil, intencao, tipo, tese, gancho, roteiro, legenda, CTA, conexao com a Vamo, risco e notas de 0 a 10.
-Use CTA de diagnostico somente em conteudo de fundo ou pilar oferta.
+Cada versao deve seguir o contrato JSON completo.
 
 Responda apenas em JSON neste formato:
 ${contentJsonContract()}
@@ -108,6 +181,7 @@ ${contentJsonContract()}
     throw new Error('A OpenAI nao retornou o JSON esperado em "conteudos".');
   }
   const conteudos = normalizeGeneratedContents(parsed.conteudos);
+  validateContents(conteudos, 6);
   return { conteudos, insights: conteudos };
 }
 
@@ -133,6 +207,11 @@ Responda especificamente:
 - o que evitar;
 - o que transformar em serie;
 - como equilibrar autoridade, demanda e conexao na proxima semana.
+- quais eixos narrativos da VAMO mais performaram;
+- quais tipos de vazamento comercial mais geraram identificacao;
+- quais conteudos de fe/prosperidade geraram conexao sem parecerem soltos;
+- quais conteudos prepararam melhor a demanda para diagnostico;
+- quais conteudos devem virar serie.
 
 ${summary}
 
@@ -160,15 +239,40 @@ function buildSystemPrompt() {
     : 'Nao mencione resultados de clientes nem cases. Use metodologia, diagnostico e conhecimento proprio.';
 
   return `
-Voce e o editor-chefe de conteudo de ${config.creator.name || 'Gustavo Garcia'}, cofundador da ${config.creator.product || 'Vamo'}.
+Voce e o editor-chefe de conteudo de ${config.creator.name || 'Gustavo Garcia'}, cofundador da VAMO.
 
-A Vamo e uma solucao de performance operacional comercial. Ela diagnostica gargalos em vendas, atendimento e pos-venda, redesenha processos e implanta sistemas de execucao para tornar a operacao mais previsivel, controlavel e escalavel.
+Sua funcao nao e apenas criar ideias. Sua funcao e proteger e expandir uma narrativa comercial.
+
+Narrativa-mae da VAMO:
+${config.editorial.narrativeMother}
+
+A VAMO nao vende IA como promessa principal.
+A VAMO nao vende software isolado.
+A VAMO nao vende bot.
+A VAMO nao vende dashboard.
+A VAMO nao vende automacao solta.
+A VAMO vende performance comercial com IA como parte da estrutura.
+
+Regra central:
+${config.editorial.communicationRule}
+
+O publico precisa perceber o problema comercial antes de perceber a tecnologia.
+
+Gustavo nao deve parecer apenas o cara da IA ou o dev que cria sistemas.
+Gustavo deve parecer alguem que transforma gargalos comerciais em sistemas inteligentes, automacoes e IA aplicada para empresas que querem vender com mais previsibilidade.
+
+Tese que deve atravessar todos os conteudos comerciais:
+- Empresas nao perdem venda so por falta de lead.
+- Muitas perdem por falta de processo, velocidade, acompanhamento e inteligencia.
+- IA sem processo nao resolve o comercial. Ela acelera a bagunca.
+- Ferramenta qualquer um compra. Operacao comercial bem implantada poucos sustentam.
+- O objetivo nao e ter mais uma tela. O objetivo e vender com mais previsibilidade.
 
 Posicionamento do criador:
-${config.creator.positioning || 'Fundador em construcao, cofundador da Vamo, falando sobre performance comercial, empreendedorismo real, fe, familia e construcao do zero.'}
+${config.creator.positioning || config.editorial.creatorNarrative}
 
 Posicionamento da Vamo:
-${config.vamo.positioning || 'Solucao de performance operacional comercial que combina diagnostico, processos, sistemas e implementacao.'}
+${config.vamo.positioning || config.editorial.institutionalNarrative}
 
 Tese central da Vamo:
 ${config.vamo.thesis || 'Empresas nao perdem resultado apenas por falta de demanda. Muitas perdem vendas, atendimento e retencao por falhas invisiveis no processo comercial: lead sem retorno, follow-up fraco, ausencia de rotina, atendimento sem padrao, pos-venda inexistente e gestor sem visibilidade.'}
@@ -183,11 +287,11 @@ ${config.vamo.forbiddenPositioning || 'software isolado, CRM tradicional, agenci
 
 A marca pessoal do Gustavo deve vender a Vamo sem parecer um perfil comercial frio.
 Ela combina:
-1. Performance comercial e operacao.
+1. VAMO e performance comercial.
 2. Empreendedorismo real e construcao do zero.
-3. Fe, valores e responsabilidade.
-4. Familia e bastidores.
-5. Oferta e diagnostico.
+3. Fe, valores, prosperidade e decisao.
+4. Familia e responsabilidade.
+5. Oferta, diagnostico e conversao.
 
 Tom:
 - direto;
@@ -205,6 +309,16 @@ Evite:
 - "vender mais";
 - "transformar sua vida";
 - "mentalidade de sucesso";
+- "sistema simples";
+- "bot de vendas";
+- "automatize tudo";
+- "criamos agentes de IA";
+- "implantamos chatbot";
+- "IA que vende por voce";
+- "sem esforco";
+- "sucesso garantido";
+- "fe vai te enriquecer";
+- "prosperidade garantida";
 - frases motivacionais vazias;
 - conteudo religioso desconectado da vida real;
 - familia usada como isca de engajamento;
@@ -227,16 +341,19 @@ Prefira:
 - fe aplicada a pratica.
 
 Regras para fe:
-${config.creator.faithBoundary || 'Falar de fe com maturidade, sem parecer pregacao solta e sempre conectando com decisao, responsabilidade, carater, disciplina e vida real.'}
-Pode falar de carater, disciplina, humildade, decisao dificil, principios e longo prazo. Nunca prometa sucesso financeiro por fe.
+${config.creator.faithBoundary || config.editorial.prosperityBoundary}
+Pode falar de carater, disciplina, humildade, decisao dificil, principios e longo prazo. Nunca prometa sucesso financeiro por fe. Nunca use religiao como isca de engajamento.
 
 Regras para familia:
 ${config.creator.familyBoundary || 'Falar de familia como responsabilidade e bastidor, sem exposicao desnecessaria e sem usar familia como isca de engajamento.'}
 
 Regras para Vamo:
-- Explique a Vamo como processo + sistema + implementacao.
-- Nunca trate como ferramenta isolada.
+- Todo conteudo relacionado a VAMO deve obedecer esta ordem: problema comercial percebido, causa real, custo invisivel, papel do processo, papel da IA/automacao/sistema como meio, resultado esperado.
+- Comece por perda de venda, falta de previsibilidade, follow-up, CRM morto, lead parado, WhatsApp sem processo ou gestor sem visibilidade.
+- Nao comece por IA, sistema ou automacao.
+- IA deve aparecer como camada de inteligencia operacional.
 - Diagnostico e CTA comercial aparecem principalmente em fundo de funil ou pilar oferta.
+- ${config.editorial.noTutorialRule}
 
 ${casesRule}
 
@@ -265,7 +382,7 @@ Ganchos ja usados em lotes anteriores:
 ${existingHooks.length ? existingHooks.map(hook => `- ${hook}`).join('\n') : '- nenhum'}
 
 Plano editorial obrigatorio deste lote, nesta ordem:
-${editorialPlan.map((item, index) => `${index + 1}. pilar=${item.pillar}; funil=${item.funil}; intent=${item.content_intent}; tipo=${item.content_type}; narrativa=${item.narrative}`).join('\n')}
+${editorialPlan.map((item, index) => `${index + 1}. pilar=${item.pillar}; funil=${item.funil}; intent=${item.content_intent}; tipo=${item.content_type}; eixo=${item.narrative_axis}; papel=${item.funnel_role}; consciencia=${item.awareness_level}; narrativa=${item.narrative}`).join('\n')}
 
 Distribuicao diaria recomendada para 10 conteudos:
 - 4 conteudos de Vamo / Performance Comercial.
@@ -302,6 +419,12 @@ Prioridade: fontes de hoje > ultimos 3 dias > ultimos 7 dias > atemporal.
 
 Regras de qualidade:
 - A Vamo deve aparecer como processo + sistema + implementacao.
+- Cada conteudo precisa ter eixo narrativo, papel no funil, nivel de consciencia, tipo de vazamento, percepcao desejada, ponte para VAMO, direcao de gravacao, lista do que nao falar e resultado esperado.
+- Cada conteudo precisa deixar claro qual dor, tensao, valor ou bastidor aborda, qual funcao cumpre no funil, qual percepcao deve criar no empresario e o que Gustavo deve evitar falar.
+- Quando for VAMO, comece por perda de venda, falta de previsibilidade, follow-up, CRM morto, lead parado, WhatsApp sem processo ou gestor sem visibilidade. Nao comece por IA, sistema ou automacao.
+- Quando for fe/prosperidade, conecte com responsabilidade, ordem, disciplina, prudencia, decisao ou carater. Nao force venda nem prometa enriquecimento.
+- Quando for familia, conecte com responsabilidade, futuro e construcao. Nao exponha terceiros nem force CTA comercial.
+- Quando for oferta, convide para diagnostico, reuniao ou Mapa de Vazamento de Vendas. Mostre que antes de ferramenta vem diagnostico.
 - Nao force insight pessoal, fe ou familia a virar venda direta.
 - Sempre que fizer sentido, explique a conexao estrategica com a Vamo.
 - Conteudo de conexao pode terminar em reflexao, comentario, salvamento ou compartilhamento.
@@ -323,8 +446,17 @@ function contentJsonContract(sequenceName = '') {
       "objetivo_post": "Atrair seguidores|Gerar autoridade|Gerar leads|Gerar comentarios|Gerar DM|Criar conexao",
       "funil": "topo|meio|fundo",
       "pillar": "vamo|empreendedorismo|fe|familia|oferta",
-      "content_intent": "atrair|autoridade|conexao|educar|quebrar_crenca|provar_metodo|vender|reativar|bastidor",
-      "content_type": "camera_direta|bastidor|opiniao_forte|historia_pessoal|analise_de_operacao|framework|meme_com_contexto|carrossel|story|prova_de_construcao|convite_diagnostico",
+      "content_intent": "atrair|autoridade|conexao|educar|quebrar_crenca|provar_metodo|vender|reativar|bastidor|aumentar_percepcao_de_risco|nomear_problema|preparar_demanda",
+      "content_type": "camera_direta|bastidor|opiniao_forte|historia_pessoal|analise_de_operacao|framework|meme_com_contexto|carrossel|story|prova_de_construcao|convite_diagnostico|narrativa_de_funil|alerta_comercial|reflexao_empresarial",
+      "narrative_axis": "vazamento_comercial|processo_antes_da_ia|ia_como_meio|previsibilidade_comercial|gestor_sem_visibilidade|whatsapp_sem_processo|follow_up_falho|crm_morto|bastidor_de_construcao|fe_valores_decisao|prosperidade_com_responsabilidade|familia_responsabilidade|diagnostico_vamo",
+      "funnel_role": "atrair_dor_latente|nomear_problema|quebrar_crenca|aumentar_percepcao_de_risco|provar_raciocinio|criar_conexao|preparar_demanda|converter_para_diagnostico",
+      "awareness_level": "inconsciente_do_problema|sente_sintoma|reconhece_gargalo|busca_solucao|pronto_para_conversar",
+      "sales_leak_type": "lead_sem_resposta|follow_up_lento|crm_sem_uso|gestor_sem_visao|time_sem_padrao|lead_desqualificado|proposta_sem_acompanhamento|pos_venda_inexistente|nenhum",
+      "desired_perception": "O que o empresario deve pensar depois do conteudo",
+      "offer_bridge": "Ponte natural para a VAMO, sem parecer venda forcada",
+      "recording_direction": "Como gravar, tom, ritmo e contexto",
+      "do_not_say": ["frase proibida 1", "frase proibida 2"],
+      "expected_result": "alcance_qualificado|comentarios_de_identificacao|salvamentos|respostas_no_direct|cliques_no_diagnostico|reforco_de_autoridade",
       "sequencia_nome": "${sequenceName}",
       "sequencia_parte": 1,
       "tese": "Ideia central do conteudo",
@@ -358,16 +490,16 @@ function contentJsonContract(sequenceName = '') {
 
 function buildEditorialPlan(limit) {
   const base = [
-    { pillar: 'vamo', funil: 'topo', content_intent: 'atrair', content_type: 'opiniao_forte', narrative: 'dor percebida' },
-    { pillar: 'vamo', funil: 'meio', content_intent: 'educar', content_type: 'analise_de_operacao', narrative: 'causa real' },
-    { pillar: 'vamo', funil: 'meio', content_intent: 'quebrar_crenca', content_type: 'camera_direta', narrative: 'erro comum' },
-    { pillar: 'vamo', funil: 'meio', content_intent: 'provar_metodo', content_type: 'framework', narrative: 'tese da Vamo' },
-    { pillar: 'empreendedorismo', funil: 'topo', content_intent: 'bastidor', content_type: 'bastidor', narrative: 'bastidor de construcao' },
-    { pillar: 'empreendedorismo', funil: 'topo', content_intent: 'autoridade', content_type: 'historia_pessoal', narrative: 'aprendizado pessoal' },
-    { pillar: 'fe', funil: 'topo', content_intent: 'conexao', content_type: 'historia_pessoal', narrative: 'valor ou fe aplicado' },
-    { pillar: 'familia', funil: 'topo', content_intent: 'conexao', content_type: 'bastidor', narrative: 'responsabilidade familiar' },
-    { pillar: 'oferta', funil: 'fundo', content_intent: 'vender', content_type: 'convite_diagnostico', narrative: 'convite para diagnostico' },
-    { pillar: 'vamo', funil: 'fundo', content_intent: 'autoridade', content_type: 'prova_de_construcao', narrative: 'reforco de autoridade' }
+    { pillar: 'vamo', funil: 'topo', content_intent: 'nomear_problema', content_type: 'alerta_comercial', narrative_axis: 'vazamento_comercial', funnel_role: 'atrair_dor_latente', awareness_level: 'sente_sintoma', narrative: 'dor percebida: venda vazando sem o gestor notar' },
+    { pillar: 'vamo', funil: 'meio', content_intent: 'quebrar_crenca', content_type: 'opiniao_forte', narrative_axis: 'processo_antes_da_ia', funnel_role: 'quebrar_crenca', awareness_level: 'reconhece_gargalo', narrative: 'IA sem processo acelera a bagunca' },
+    { pillar: 'vamo', funil: 'meio', content_intent: 'aumentar_percepcao_de_risco', content_type: 'analise_de_operacao', narrative_axis: 'gestor_sem_visibilidade', funnel_role: 'aumentar_percepcao_de_risco', awareness_level: 'reconhece_gargalo', narrative: 'gestor nao sabe onde agir antes do mes acabar' },
+    { pillar: 'vamo', funil: 'meio', content_intent: 'educar', content_type: 'framework', narrative_axis: 'whatsapp_sem_processo', funnel_role: 'provar_raciocinio', awareness_level: 'busca_solucao', narrative: 'WhatsApp precisa de contexto, tempo certo e proximo passo' },
+    { pillar: 'vamo', funil: 'meio', content_intent: 'provar_metodo', content_type: 'prova_de_construcao', narrative_axis: 'ia_como_meio', funnel_role: 'preparar_demanda', awareness_level: 'busca_solucao', narrative: 'IA como inteligencia operacional, nao como promessa magica' },
+    { pillar: 'empreendedorismo', funil: 'topo', content_intent: 'bastidor', content_type: 'bastidor', narrative_axis: 'bastidor_de_construcao', funnel_role: 'criar_conexao', awareness_level: 'inconsciente_do_problema', narrative: 'construcao real da VAMO e vida de empresario' },
+    { pillar: 'empreendedorismo', funil: 'meio', content_intent: 'autoridade', content_type: 'historia_pessoal', narrative_axis: 'bastidor_de_construcao', funnel_role: 'provar_raciocinio', awareness_level: 'sente_sintoma', narrative: 'aprendizado pratico de fundador' },
+    { pillar: 'fe', funil: 'topo', content_intent: 'conexao', content_type: 'reflexao_empresarial', narrative_axis: 'prosperidade_com_responsabilidade', funnel_role: 'criar_conexao', awareness_level: 'inconsciente_do_problema', narrative: 'fe, prosperidade, ordem e responsabilidade' },
+    { pillar: 'familia', funil: 'topo', content_intent: 'conexao', content_type: 'historia_pessoal', narrative_axis: 'familia_responsabilidade', funnel_role: 'criar_conexao', awareness_level: 'inconsciente_do_problema', narrative: 'familia como responsabilidade por tras da construcao' },
+    { pillar: 'oferta', funil: 'fundo', content_intent: 'vender', content_type: 'convite_diagnostico', narrative_axis: 'diagnostico_vamo', funnel_role: 'converter_para_diagnostico', awareness_level: 'pronto_para_conversar', narrative: 'convite para Mapa de Vazamento de Vendas' }
   ];
   return Array.from({ length: limit }, (_, index) => base[index % base.length]);
 }
@@ -386,10 +518,23 @@ function pickSeriesName(date, batchNumber) {
 function normalizeGeneratedContents(contents, editorialPlan = []) {
   return contents.map((item, index) => {
     const plan = editorialPlan[index] || {};
-    const funil = normalizeFunil(item.funil || plan.funil);
-    const pillar = normalizePillar(item.pillar || item.pilar || plan.pillar);
-    const contentIntent = normalizeEnum(item.content_intent || item.intent || plan.content_intent, ALLOWED_INTENTS, plan.content_intent || 'autoridade');
-    const contentType = normalizeEnum(item.content_type || item.formato || plan.content_type, ALLOWED_TYPES, plan.content_type || 'camera_direta');
+    const hasPlan = Boolean(plan.pillar || plan.funil || plan.content_intent || plan.content_type);
+    const funil = normalizeFunil(hasPlan ? plan.funil : item.funil);
+    const pillar = normalizePillar(hasPlan ? plan.pillar : (item.pillar || item.pilar));
+    const contentIntent = normalizeEnum(
+      hasPlan ? plan.content_intent : (item.content_intent || item.intent),
+      ALLOWED_INTENTS,
+      plan.content_intent || 'autoridade'
+    );
+    const contentType = normalizeEnum(
+      hasPlan ? plan.content_type : (item.content_type || item.formato),
+      ALLOWED_TYPES,
+      plan.content_type || 'camera_direta'
+    );
+    const narrativeAxis = normalizeNarrativeAxis(item.narrative_axis, pillar, plan);
+    const funnelRole = normalizeFunnelRole(item.funnel_role, contentIntent, funil, pillar, plan);
+    const awarenessLevel = normalizeAwarenessLevel(item.awareness_level || plan.awareness_level, funil, pillar);
+    const expectedResult = normalizeExpectedResult(item.expected_result, funil, pillar, contentIntent);
     const estrutura = Array.isArray(item.estrutura) && item.estrutura.length
       ? item.estrutura
       : [
@@ -405,6 +550,15 @@ function normalizeGeneratedContents(contents, editorialPlan = []) {
       pillar,
       content_intent: contentIntent,
       content_type: contentType,
+      narrative_axis: narrativeAxis,
+      funnel_role: funnelRole,
+      awareness_level: awarenessLevel,
+      sales_leak_type: normalizeSalesLeakType(item.sales_leak_type, pillar, narrativeAxis),
+      desired_perception: item.desired_perception || desiredPerceptionFor({ pillar, funil, narrativeAxis }),
+      offer_bridge: item.offer_bridge || offerBridgeFor({ pillar, funil, narrativeAxis }),
+      recording_direction: item.recording_direction || recordingDirectionFor({ pillar, contentType, narrativeAxis }),
+      do_not_say: Array.isArray(item.do_not_say) && item.do_not_say.length ? item.do_not_say : defaultDoNotSayFor({ pillar, narrativeAxis }),
+      expected_result: expectedResult,
       objetivo_post: item.objetivo_post || objectiveFor({ funil, pillar, contentIntent }),
       sequencia_nome: item.sequencia_nome || '',
       sequencia_parte: Number(item.sequencia_parte || index + 1),
@@ -465,6 +619,65 @@ function normalizePillar(value) {
 function normalizeEnum(value, allowed, fallback) {
   const text = String(value || '').toLowerCase().trim().replace(/\s+/g, '_');
   return allowed.includes(text) ? text : fallback;
+}
+
+function normalizeNarrativeAxis(value, pillar, plan = {}) {
+  const text = String(value || plan.narrative_axis || '').toLowerCase().trim().replace(/\s+/g, '_');
+  if (ALLOWED_NARRATIVE_AXES.includes(text)) return text;
+  if (pillar === 'fe') return 'fe_valores_decisao';
+  if (pillar === 'familia') return 'familia_responsabilidade';
+  if (pillar === 'oferta') return 'diagnostico_vamo';
+  if (pillar === 'empreendedorismo') return 'bastidor_de_construcao';
+  return 'vazamento_comercial';
+}
+
+function normalizeFunnelRole(value, intent, funil, pillar, plan = {}) {
+  const text = String(value || plan.funnel_role || '').toLowerCase().trim().replace(/\s+/g, '_');
+  if (ALLOWED_FUNNEL_ROLES.includes(text)) return text;
+  if (funil === 'fundo' || pillar === 'oferta') return 'converter_para_diagnostico';
+  if (intent === 'quebrar_crenca') return 'quebrar_crenca';
+  if (intent === 'aumentar_percepcao_de_risco') return 'aumentar_percepcao_de_risco';
+  if (intent === 'nomear_problema') return 'nomear_problema';
+  if (intent === 'conexao' || pillar === 'fe' || pillar === 'familia') return 'criar_conexao';
+  if (funil === 'meio') return 'preparar_demanda';
+  return 'atrair_dor_latente';
+}
+
+function normalizeAwarenessLevel(value, funil, pillar) {
+  const text = String(value || '').toLowerCase().trim().replace(/\s+/g, '_');
+  if (ALLOWED_AWARENESS_LEVELS.includes(text)) return text;
+  if (funil === 'fundo' || pillar === 'oferta') return 'pronto_para_conversar';
+  if (funil === 'meio') return 'reconhece_gargalo';
+  return 'sente_sintoma';
+}
+
+function normalizeExpectedResult(value, funil, pillar, intent) {
+  const text = String(value || '').toLowerCase().trim().replace(/\s+/g, '_');
+  if (ALLOWED_EXPECTED_RESULTS.includes(text)) return text;
+  if (funil === 'fundo' || pillar === 'oferta') return 'cliques_no_diagnostico';
+  if (pillar === 'fe' || pillar === 'familia' || intent === 'conexao') return 'comentarios_de_identificacao';
+  if (funil === 'meio') return 'salvamentos';
+  return 'alcance_qualificado';
+}
+
+function normalizeSalesLeakType(value, pillar, narrativeAxis) {
+  const allowed = ['lead_sem_resposta', 'follow_up_lento', 'crm_sem_uso', 'gestor_sem_visao', 'time_sem_padrao', 'lead_desqualificado', 'proposta_sem_acompanhamento', 'pos_venda_inexistente', 'nenhum'];
+  const text = String(value || '').toLowerCase().trim().replace(/\s+/g, '_');
+  if (allowed.includes(text)) return text;
+  if (!['vamo', 'oferta'].includes(pillar)) return 'nenhum';
+  if (narrativeAxis === 'follow_up_falho') return 'follow_up_lento';
+  if (narrativeAxis === 'crm_morto') return 'crm_sem_uso';
+  if (narrativeAxis === 'gestor_sem_visibilidade') return 'gestor_sem_visao';
+  if (narrativeAxis === 'whatsapp_sem_processo') return 'lead_sem_resposta';
+  return 'time_sem_padrao';
+}
+
+function normalizeCaptureMode(value) {
+  return normalizeEnum(value, ['auto', 'narrativa_vamo', 'funil_contemporaneo', 'fe_prosperidade', 'bastidor_empresario', 'oferta_diagnostico'], 'auto');
+}
+
+function normalizeDesired(value, allowed) {
+  return normalizeEnum(value || 'auto', allowed, 'auto');
 }
 
 function objectiveFor({ funil, pillar, contentIntent }) {
@@ -534,6 +747,38 @@ function strategicLeadReasonFor({ pillar, funil, contentIntent }) {
   return 'Fortalece autoridade e conexao, criando confianca antes da oferta.';
 }
 
+function desiredPerceptionFor({ pillar, funil, narrativeAxis }) {
+  if (pillar === 'fe') return 'Prosperidade exige ordem, responsabilidade e decisao, nao promessa magica.';
+  if (pillar === 'familia') return 'Construir negocio tambem e assumir responsabilidade pelo futuro sem expor a vida pessoal.';
+  if (pillar === 'empreendedorismo') return 'Gustavo pensa como empresario e executa como operador, sem romantizar a construcao.';
+  if (pillar === 'oferta' || funil === 'fundo') return 'Antes de comprar ferramenta ou colocar mais trafego, preciso entender onde minha venda esta vazando.';
+  if (narrativeAxis === 'processo_antes_da_ia') return 'Talvez minha empresa nao precise de mais automacao agora. Talvez precise de processo antes de automatizar.';
+  return 'Minha empresa talvez nao precise de mais lead agora. Talvez precise parar de perder os leads que ja chegam.';
+}
+
+function offerBridgeFor({ pillar, funil, narrativeAxis }) {
+  if (pillar === 'fe' || pillar === 'familia') return 'A conexao com a VAMO fica no principio: responsabilidade, ordem e execucao antes de promessas.';
+  if (pillar === 'empreendedorismo') return 'Esse bastidor mostra a forma como a VAMO e construida: diagnostico, processo, tecnologia e acompanhamento.';
+  if (pillar === 'oferta' || funil === 'fundo') return 'Esse e o ponto de partida do Mapa de Vazamento de Vendas da VAMO.';
+  if (narrativeAxis === 'ia_como_meio') return 'A VAMO usa IA como camada de inteligencia depois de entender o gargalo comercial.';
+  return 'Esse e exatamente o tipo de vazamento que a VAMO identifica antes de falar em ferramenta.';
+}
+
+function recordingDirectionFor({ pillar, contentType, narrativeAxis }) {
+  if (pillar === 'fe') return 'Gravar em camera direta, tom calmo e firme, conectando fe com responsabilidade pratica.';
+  if (pillar === 'familia') return 'Gravar em tom humano e contido, sem expor terceiros nem transformar intimidade em oferta.';
+  if (contentType === 'carrossel' || contentType === 'framework') return 'Organizar em pontos curtos, com exemplos de operacao comercial e fechamento claro.';
+  if (narrativeAxis === 'processo_antes_da_ia') return 'Gravar em camera direta, tom firme, como quem alerta um empresario que confunde ferramenta com gestao.';
+  return 'Gravar em camera direta, tom calmo e seguro, com foco no problema comercial antes da tecnologia.';
+}
+
+function defaultDoNotSayFor({ pillar, narrativeAxis }) {
+  if (pillar === 'fe') return ['fe vai te enriquecer', 'prosperidade garantida', 'mentalidade de sucesso'];
+  if (pillar === 'familia') return ['use sua familia para vender', 'compre por causa da minha historia', 'drama pessoal'];
+  if (narrativeAxis === 'ia_como_meio' || narrativeAxis === 'processo_antes_da_ia') return ['criamos agentes de IA', 'automatize tudo', 'isso e simples de fazer'];
+  return ['bot de vendas', 'sistema simples', 'vender mais sem esforco'];
+}
+
 function score(value) {
   const number = Number(value || 0);
   if (!Number.isFinite(number)) return 0;
@@ -565,6 +810,13 @@ function validateContents(contents, expectedLimit, editorialPlan = []) {
     'pillar',
     'content_intent',
     'content_type',
+    'narrative_axis',
+    'funnel_role',
+    'awareness_level',
+    'desired_perception',
+    'offer_bridge',
+    'recording_direction',
+    'expected_result',
     'tese',
     'formato_recomendado',
     'gancho',
@@ -586,9 +838,13 @@ function validateContents(contents, expectedLimit, editorialPlan = []) {
     !ALLOWED_PILLARS.includes(item.pillar)
     || !ALLOWED_INTENTS.includes(item.content_intent)
     || !ALLOWED_TYPES.includes(item.content_type)
+    || !ALLOWED_NARRATIVE_AXES.includes(item.narrative_axis)
+    || !ALLOWED_FUNNEL_ROLES.includes(item.funnel_role)
+    || !ALLOWED_AWARENESS_LEVELS.includes(item.awareness_level)
+    || !ALLOWED_EXPECTED_RESULTS.includes(item.expected_result)
   ));
   if (invalidEnum) {
-    throw new Error('A OpenAI retornou pilar, intencao ou tipo fora do contrato. Nada foi salvo.');
+    throw new Error('A OpenAI retornou campos estrategicos fora do contrato. Nada foi salvo.');
   }
 
   const forbiddenPatterns = [
@@ -610,7 +866,17 @@ function validateContents(contents, expectedLimit, editorialPlan = []) {
     /\bdicas\b/i,
     /vender mais/i,
     /transformar sua vida/i,
-    /mentalidade de sucesso/i
+    /mentalidade de sucesso/i,
+    /criamos agentes de ia/i,
+    /implantamos chatbot/i,
+    /automatize tudo/i,
+    /sistema simples/i,
+    /ferramenta simples/i,
+    /bot de vendas/i,
+    /ia que vende por voce/i,
+    /sucesso financeiro garantido/i,
+    /fe vai te enriquecer/i,
+    /prosperidade garantida/i
   ];
 
   const weakItems = contents.filter(item => {
@@ -641,13 +907,22 @@ function validateContents(contents, expectedLimit, editorialPlan = []) {
     throw new Error('A OpenAI colocou CTA comercial forte fora de fundo/oferta. Nada foi salvo.');
   }
 
-  if (editorialPlan.length) {
-    const mismatch = contents.find((item, index) => {
-      const plan = editorialPlan[index];
-      return plan && (item.pillar !== plan.pillar || item.funil !== plan.funil);
-    });
-    if (mismatch) {
-      throw new Error('A OpenAI nao respeitou a distribuicao editorial de pilar e funil. Nada foi salvo.');
-    }
+  const badVamoOpening = contents.find(item => {
+    if (item.pillar !== 'vamo') return false;
+    return /^(ia|inteligencia artificial|bot|sistema|automacao|dashboard|crm)\b/i.test(String(item.gancho || '').trim());
+  });
+  if (badVamoOpening) {
+    throw new Error('Conteudo de VAMO comecou pela ferramenta. Deve comecar pelo vazamento comercial. Nada foi salvo.');
   }
+
+  const tutorialLeak = contents.find(item => {
+    const text = [item.gancho, item.roteiro_falado, item.legenda, item.estrutura?.join(' ')].join(' ');
+    return /passo a passo para criar|como configurar|copie esse fluxo|prompt pronto para|monte seu bot/i.test(text);
+  });
+  if (tutorialLeak) {
+    throw new Error('Conteudo ensinou demais a construir sozinho. Deve vender a complexidade estrategica, nao entregar tutorial.');
+  }
+
+  // The normalizer applies the editorial plan before validation, so distribution
+  // mismatches from the model should be corrected instead of blocking generation.
 }

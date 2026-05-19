@@ -21,6 +21,15 @@ export function initDb() {
       pillar TEXT NOT NULL,
       content_intent TEXT,
       content_type TEXT,
+      narrative_axis TEXT,
+      funnel_role TEXT,
+      awareness_level TEXT,
+      sales_leak_type TEXT,
+      desired_perception TEXT,
+      offer_bridge TEXT,
+      recording_direction TEXT,
+      do_not_say TEXT,
+      expected_result TEXT,
       sequencia_nome TEXT,
       sequencia_parte INTEGER DEFAULT 1,
       tese TEXT,
@@ -109,10 +118,11 @@ export function initDb() {
       weight_topo REAL DEFAULT 0.40,
       weight_meio REAL DEFAULT 0.30,
       weight_fundo REAL DEFAULT 0.30,
-      weight_vendas REAL DEFAULT 0.70,
+      weight_vamo REAL DEFAULT 0.45,
       weight_empreendedorismo REAL DEFAULT 0.20,
-      weight_fe REAL DEFAULT 0.05,
-      weight_vida REAL DEFAULT 0.05,
+      weight_fe REAL DEFAULT 0.15,
+      weight_familia REAL DEFAULT 0.10,
+      weight_oferta REAL DEFAULT 0.10,
       top_hook_formulas TEXT,
       best_posting_hours TEXT,
       top_lead_topics TEXT,
@@ -137,6 +147,23 @@ export function initDb() {
     CREATE INDEX IF NOT EXISTS idx_sources_date ON sources(date);
     CREATE INDEX IF NOT EXISTS idx_metrics_posted_at ON post_metrics(posted_at);
   `);
+
+  ensureColumn('contents', 'narrative_axis', 'TEXT');
+  ensureColumn('contents', 'funnel_role', 'TEXT');
+  ensureColumn('contents', 'awareness_level', 'TEXT');
+  ensureColumn('contents', 'sales_leak_type', 'TEXT');
+  ensureColumn('contents', 'desired_perception', 'TEXT');
+  ensureColumn('contents', 'offer_bridge', 'TEXT');
+  ensureColumn('contents', 'recording_direction', 'TEXT');
+  ensureColumn('contents', 'do_not_say', 'TEXT');
+  ensureColumn('contents', 'expected_result', 'TEXT');
+}
+
+function ensureColumn(table, column, definition) {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all().map(item => item.name);
+  if (!columns.includes(column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
 }
 
 export function logJob(job, status, message = '') {
@@ -169,6 +196,8 @@ export function insertContents(date, contents) {
   const stmt = db.prepare(`
     INSERT INTO contents (
       date, objetivo_post, funil, pillar, content_intent, content_type,
+      narrative_axis, funnel_role, awareness_level, sales_leak_type,
+      desired_perception, offer_bridge, recording_direction, do_not_say, expected_result,
       sequencia_nome, sequencia_parte, tese, tema,
       formato_recomendado, gancho, roteiro_falado, pausas_entonacao, momento_mostrar_tela,
       interpretacao, estrutura, cta_tipo, cta_texto, legenda, titulo_reels,
@@ -177,6 +206,8 @@ export function insertContents(date, contents) {
       score_vamo_alignment, score_final, source_headline, source_url
     ) VALUES (
       @date, @objetivo_post, @funil, @pillar, @content_intent, @content_type,
+      @narrative_axis, @funnel_role, @awareness_level, @sales_leak_type,
+      @desired_perception, @offer_bridge, @recording_direction, @do_not_say, @expected_result,
       @sequencia_nome, @sequencia_parte, @tese, @tema,
       @formato_recomendado, @gancho, @roteiro_falado, @pausas_entonacao, @momento_mostrar_tela,
       @interpretacao, @estrutura, @cta_tipo, @cta_texto, @legenda, @titulo_reels,
@@ -201,6 +232,15 @@ function normalizeContent(date, item) {
     pillar: normalizePillar(item.pillar || item.pilar || 'vamo'),
     content_intent: item.content_intent || item.intent || '',
     content_type: item.content_type || item.formato || '',
+    narrative_axis: item.narrative_axis || '',
+    funnel_role: item.funnel_role || '',
+    awareness_level: item.awareness_level || '',
+    sales_leak_type: item.sales_leak_type || 'nenhum',
+    desired_perception: item.desired_perception || '',
+    offer_bridge: item.offer_bridge || '',
+    recording_direction: item.recording_direction || '',
+    do_not_say: JSON.stringify(item.do_not_say || []),
+    expected_result: item.expected_result || '',
     sequencia_nome: item.sequencia_nome || '',
     sequencia_parte: Number(item.sequencia_parte || 1),
     tese: item.tese || '',
@@ -264,7 +304,8 @@ export function parseContent(row) {
   return {
     ...row,
     estrutura: safeJson(row.estrutura, []),
-    hashtags: safeJson(row.hashtags, [])
+    hashtags: safeJson(row.hashtags, []),
+    do_not_say: safeJson(row.do_not_say, [])
   };
 }
 
@@ -312,6 +353,15 @@ function ensureMigrations() {
     objetivo_post: 'TEXT',
     content_intent: 'TEXT',
     content_type: 'TEXT',
+    narrative_axis: 'TEXT',
+    funnel_role: 'TEXT',
+    awareness_level: 'TEXT',
+    sales_leak_type: 'TEXT',
+    desired_perception: 'TEXT',
+    offer_bridge: 'TEXT',
+    recording_direction: 'TEXT',
+    do_not_say: 'TEXT',
+    expected_result: 'TEXT',
     sequencia_nome: 'TEXT',
     sequencia_parte: 'INTEGER DEFAULT 1',
     tese: 'TEXT',
@@ -346,6 +396,81 @@ function ensureMigrations() {
   if (!metricColumns.includes('leads_generated')) {
     db.exec('ALTER TABLE post_metrics ADD COLUMN leads_generated INTEGER DEFAULT 0');
   }
+  migrateIntelligencePatterns();
+}
+
+function migrateIntelligencePatterns() {
+  const columns = db.prepare('PRAGMA table_info(intelligence_patterns)').all().map(row => row.name);
+  const hasOldPillarNames = columns.includes('weight_vendas') || columns.includes('weight_vida');
+  const missingNewPillarNames = ['weight_vamo', 'weight_familia', 'weight_oferta'].some(column => !columns.includes(column));
+  if (!hasOldPillarNames && !missingNewPillarNames) return;
+
+  db.exec(`
+    DROP TABLE IF EXISTS intelligence_patterns_new;
+
+    CREATE TABLE IF NOT EXISTS intelligence_patterns_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      window_days INTEGER DEFAULT 30,
+      weight_topo REAL DEFAULT 0.40,
+      weight_meio REAL DEFAULT 0.30,
+      weight_fundo REAL DEFAULT 0.30,
+      weight_vamo REAL DEFAULT 0.45,
+      weight_empreendedorismo REAL DEFAULT 0.20,
+      weight_fe REAL DEFAULT 0.15,
+      weight_familia REAL DEFAULT 0.10,
+      weight_oferta REAL DEFAULT 0.10,
+      top_hook_formulas TEXT,
+      best_posting_hours TEXT,
+      top_lead_topics TEXT,
+      gpt_analysis TEXT,
+      posts_analyzed INTEGER DEFAULT 0
+    );
+  `);
+
+  const selectWeight = (newColumn, oldColumn, fallback) => {
+    if (columns.includes(newColumn) && columns.includes(oldColumn)) return `COALESCE(${newColumn}, ${oldColumn}, ${fallback})`;
+    if (columns.includes(newColumn)) return `COALESCE(${newColumn}, ${fallback})`;
+    if (columns.includes(oldColumn)) return `COALESCE(${oldColumn}, ${fallback})`;
+    return String(fallback);
+  };
+
+  const columnValue = (column, fallback) => columns.includes(column) ? column : fallback;
+  const weightVamo = selectWeight('weight_vamo', 'weight_vendas', 0.45);
+  const weightFamilia = selectWeight('weight_familia', 'weight_vida', 0.10);
+  const weightOferta = columns.includes('weight_oferta')
+    ? 'COALESCE(weight_oferta, 0.10)'
+    : `MAX(0, 1 - (${weightVamo} + ${selectWeight('weight_empreendedorismo', 'weight_empreendedorismo', 0.20)} + ${selectWeight('weight_fe', 'weight_fe', 0.15)} + ${weightFamilia}))`;
+
+  db.exec(`
+    INSERT INTO intelligence_patterns_new (
+      id, updated_at, window_days, weight_topo, weight_meio, weight_fundo,
+      weight_vamo, weight_empreendedorismo, weight_fe, weight_familia,
+      weight_oferta, top_hook_formulas, best_posting_hours, top_lead_topics,
+      gpt_analysis, posts_analyzed
+    )
+    SELECT
+      id,
+      ${columnValue('updated_at', 'CURRENT_TIMESTAMP')},
+      ${columnValue('window_days', '30')},
+      ${columnValue('weight_topo', '0.40')},
+      ${columnValue('weight_meio', '0.30')},
+      ${columnValue('weight_fundo', '0.30')},
+      ${weightVamo},
+      ${selectWeight('weight_empreendedorismo', 'weight_empreendedorismo', 0.20)},
+      ${selectWeight('weight_fe', 'weight_fe', 0.15)},
+      ${weightFamilia},
+      ${weightOferta},
+      ${columnValue('top_hook_formulas', 'NULL')},
+      ${columnValue('best_posting_hours', 'NULL')},
+      ${columnValue('top_lead_topics', 'NULL')},
+      ${columnValue('gpt_analysis', 'NULL')},
+      ${columnValue('posts_analyzed', '0')}
+    FROM intelligence_patterns;
+
+    DROP TABLE intelligence_patterns;
+    ALTER TABLE intelligence_patterns_new RENAME TO intelligence_patterns;
+  `);
 }
 
 initDb();
